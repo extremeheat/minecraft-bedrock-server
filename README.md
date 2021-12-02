@@ -18,7 +18,9 @@ Or with npm to use programmatically:1
 ## Usage
 
 ### via command line
+
 `npx minecraft-bedrock-server --help`
+
 `npx minecraft-bedrock-server --version 1.18.0 --online --path ./my1.18server`
 
 ### via code
