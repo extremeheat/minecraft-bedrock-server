@@ -1,6 +1,6 @@
-# basic-args
+# minecraft-bedrock-server
 [![NPM version](https://img.shields.io/npm/v/minecraft-bedrock-server.svg)](http://npmjs.com/package/minecraft-bedrock-server)
-[![Build Status](https://github.com/extremeheat/node-basic-args/workflows/CI/badge.svg)](https://github.com/extremeheat/minecraft-bedrock-server/actions?query=workflow%3A%22CI%22)
+[![Build Status](https://github.com/extremeheat/minecraft-bedrock-server/workflows/CI/badge.svg)](https://github.com/extremeheat/minecraft-bedrock-server/actions?query=workflow%3A%22CI%22)
 [![Discord](https://img.shields.io/badge/chat-on%20discord-brightgreen.svg)](https://discord.gg/GsEFRM8)
 [![Try it on gitpod](https://img.shields.io/badge/try-on%20gitpod-brightgreen.svg)](https://gitpod.io/#https://github.com/extremeheat/minecraft-bedrock-server)
 
@@ -22,6 +22,8 @@ Or with npm to use programmatically:1
 `npx minecraft-bedrock-server --help`
 
 `npx minecraft-bedrock-server --version 1.18.0 --online --path ./my1.18server`
+
+any extraneous -- options will be placed inside the `server.properties` file, e.g. `--level-name coolWorld`.
 
 ### via code
 
