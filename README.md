@@ -27,6 +27,8 @@ any extraneous -- options will be placed inside the `server.properties` file, e.
 
 ### via code
 
+see index.d.ts
+
 ```js
 const bedrockServer = require('minecraft-bedrock-server')
 

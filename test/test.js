@@ -12,9 +12,10 @@ for (const version of versions) {
       const path = join(__dirname, '/bds-' + version)
       try { fs.rmSync(path, { recursive: true }) } catch (e) {}
       const [v4, v6] = [19132 + ((Math.random() * 1000) | 0), 19133 + ((Math.random() * 1000) | 0)]
-      await bedrockServer.startServerAndWait(version, 80000, { path, 'server-port': v4, 'server-portv6': v6 })
+      const handle = await bedrockServer.startServerAndWait(version, 80000, { path, 'server-port': v4, 'server-portv6': v6 })
       const ok = fs.existsSync(path)
       assert(ok, 'server did not start')
+      handle.kill()
     })
   })
 }
