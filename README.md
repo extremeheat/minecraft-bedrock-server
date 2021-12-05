@@ -10,9 +10,11 @@ Simple command line/software interface for starting a Minecraft bedrock server
 ## Running & Installation
 
 Start a server through the command line:
+
 `npx minecraft-bedrock-server -v 1.18.0`
 
-Or with npm to use programmatically:1
+Or with npm to use programmatically:
+
 `npm install minecraft-bedrock-server`
 
 ## Usage
@@ -34,7 +36,7 @@ const bedrockServer = require('minecraft-bedrock-server')
 
 const onStart = () => console.log('Server started!')
 
-bedrockServer.startServer('1.18.0', onStart, { 'server-port': opt.port, 'online-mode': Boolean(opt.online), path: opt.path ? opt.path : undefined })
+bedrockServer.startServer('1.18.0', onStart, { 'server-port': 19132, 'online-mode': true, path: './bds' })
 ```
 
 ### Help screen
