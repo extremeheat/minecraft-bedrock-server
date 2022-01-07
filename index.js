@@ -19,7 +19,7 @@ function fetchLatestStable () {
 
 // Download + extract vanilla server and enter the directory
 async function download (os, version, dir) {
-  dir ||= './bds-' + version
+  dir = dir || ('./bds-' + version)
   const verStr = version.split('.').slice(0, 3).join('.')
 
   dir = resolve(dir)
