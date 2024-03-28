@@ -148,6 +148,7 @@ async function startServer (version, onStart, options = {}) {
 
 // Start the server and wait for it to be ready, with a timeout
 function startServerAndWait (version, withTimeout, options) {
+  if (isNaN(withTimeout)) throw Error('timeout must be a number')
   let handle
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {

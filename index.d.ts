@@ -1,7 +1,4 @@
 declare module "minecraft-bedrock-server" {
-  // Return the name of the latest available Minecraft Bedrock server version.
-  function fetchLatestStable()
-
   type GameMode = "survival" | "creative" | "adventure";
   type Difficulty = "peaceful" | "easy" | "normal" | "hard";
   type PermissionLevel = "visitor" | "member" | "operator";
@@ -45,4 +42,7 @@ declare module "minecraft-bedrock-server" {
 
   // Starts the server and waits
   function startServerAndWait(version: string, withTimeout: number, options: ServerOptionsEx): Promise<ChildProcess>
+
+  // Starts the server and waits. On failure, reset state and try again once more.
+  function startServerAndWait2(version: string, withTimeout: number, options: ServerOptionsEx): Promise<ChildProcess>
 }
