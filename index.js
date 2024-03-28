@@ -74,25 +74,34 @@ async function download (os, version, root, path) {
   return verStr
 }
 
-// function erase (version, root, path) {
-//   process.chdir(root)
-//   const dir = path || 'bds-' + version
-//   debug('Removing server', root + path)
-//   fs.rmSync(dir, { recursive: true, force: true })
-// }
+function eraseServer (version, options) {
+  // Remove the server and try again
+  const currentDir = process.cwd()
+  process.chdir(options.root || __dirname)
+  const path = options.path ? options.path : 'bds-' + version
+  debug('Removing server', path)
+  fs.rmSync(path, { recursive: true, force: true })
+  process.chdir(currentDir)
+}
 
 const defaultOptions = {
   'level-generator': '2',
   'server-port': '19130',
   'online-mode': 'false'
 }
+const internalOptions = ['path', 'root']
 
 // Setup the server
 function configure (options = {}) {
   const opts = { ...defaultOptions, ...options }
   let config = fs.readFileSync('./server.properties', 'utf-8')
+  config = config.split('## node options')[0].trim()
+  config += '\n## node options'
   config += '\nplayer-idle-timeout=1\nallow-cheats=true\ndefault-player-permission-level=operator'
-  for (const o in opts) config += `\n${o}=${opts[o]}`
+  for (const o in opts) {
+    if (internalOptions.includes(o)) continue
+    config += `\n${o}=${opts[o]}`
+  }
   fs.writeFileSync('./server.properties', config)
 }
 
@@ -164,13 +173,7 @@ async function startServerAndWait2 (version, withTimeout, options) {
     console.log('^ Trying once more to start server in 10 seconds...')
     lastHandle?.kill()
     await new Promise(resolve => setTimeout(resolve, 10000))
-    // Remove the server and try again
-    const currentDir = process.cwd()
-    process.chdir(options.root || __dirname)
-    const path = options.path ? options.path : 'bds-' + version
-    debug('Removing server', path)
-    fs.rmSync(path, { recursive: true, force: true })
-    process.chdir(currentDir)
+    await eraseServer(version, options)
     return await startServerAndWait(version, withTimeout, options)
   }
 }

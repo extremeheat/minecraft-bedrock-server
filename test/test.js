@@ -19,3 +19,6 @@ for (const version of versions) {
     })
   })
 }
+
+// For libssl1.0 missing see:
+// https://stackoverflow.com/questions/72133316/libssl-so-1-1-cannot-open-shared-object-file-no-such-file-or-directory
