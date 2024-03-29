@@ -3,6 +3,7 @@ const fs = require('fs')
 const cp = require('child_process')
 const debug = process.env.CI ? console.debug : require('debug')('minecraft-bedrock-server')
 const https = require('https')
+const serversHtmlURL = 'https://www.minecraft.net/en-us/download/server/bedrock'
 
 function head (url) {
   return new Promise((resolve, reject) => {
@@ -27,14 +28,39 @@ function get (url, outPath) {
   })
 }
 
-let lock = false
+async function getLatestVersions () {
+  const html = await fetch(serversHtmlURL).then(res => res.text())
+  // Find '                                        <a href="https://minecraft.azureedge.net/bin-linux/bedrock-server-1.20.72.01.zip" aria-label="Download Minecraft Dedicated Server software for Ubuntu (Linux)" class="btn btn-disabled-outline mt-4 downloadlink" role="button" data-platform="serverBedrockLinux" tabindex="0" aria-disabled="true">Download </a>'
+  const links = [...html.matchAll(/a href="(.*?)" /g)].map(match => match[1])
+
+  function forOS (os) {
+    const url = links.find(link => link.includes(os + '/'))
+    if (!url) return null
+    const version4 = url.match(/bedrock-server-(\d+\.\d+\.\d+\.\d+)\.zip/)[1]
+    const version3 = version4.split('.').slice(0, 3).join('.')
+    return { version4, version3, url }
+  }
+
+  return {
+    linux: forOS('linux'),
+    windows: forOS('win'),
+    macos: forOS('osx'),
+    preview: {
+      linux: forOS('linux-preview'),
+      windows: forOS('win-preview'),
+      macos: forOS('osx-preview')
+    }
+  }
+}
+
+let downloadLock = false
 
 // Download + extract vanilla server and enter the directory
 async function download (os, version, root, path) {
-  if (lock) {
+  if (downloadLock) {
     throw Error('Already downloading server')
   }
-  lock = true
+  downloadLock = true
   process.chdir(root)
   const verStr = version.split('.').slice(0, 3).join('.')
   const dir = path || 'bds-' + version
@@ -42,7 +68,7 @@ async function download (os, version, root, path) {
   if (fs.existsSync(dir) && fs.readdirSync(dir).length) {
     process.chdir(dir) // Enter server folder
     debug('Already downloaded', version)
-    lock = false
+    downloadLock = false
     return verStr
   }
   try { fs.mkdirSync(dir) } catch { }
@@ -70,7 +96,7 @@ async function download (os, version, root, path) {
   // Unzip server
   if (process.platform === 'linux') cp.execSync('unzip -u bds.zip && chmod +777 ./bedrock_server')
   else cp.execSync('tar -xf bds.zip')
-  lock = false
+  downloadLock = false
   return verStr
 }
 
@@ -179,4 +205,4 @@ async function startServerAndWait2 (version, withTimeout, options) {
   }
 }
 
-module.exports = { startServer, startServerAndWait, startServerAndWait2 }
+module.exports = { getLatestVersions, startServer, startServerAndWait, startServerAndWait2 }
