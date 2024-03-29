@@ -20,5 +20,20 @@ for (const version of versions) {
   })
 }
 
+describe('auxiliary methods', function () {
+  it('getLatestVersions works', async function () {
+    const versions = await bedrockServer.getLatestVersions()
+    console.log('Versions', versions)
+    assert(versions.linux.version3, 'Linux version exists')
+    assert(versions.linux.url, 'Linux URL exists')
+    assert(versions.windows.version3, 'Windows version exists')
+    assert(versions.windows.url, 'Windows URL exists')
+    assert(versions.preview.linux.version3, 'Preview Linux version exists')
+    assert(versions.preview.linux.url, 'Preview Linux URL exists')
+    assert(versions.preview.windows.version3, 'Preview Windows version exists')
+    assert(versions.preview.windows.url, 'Preview Windows URL exists')
+  })
+})
+
 // For libssl1.0 missing see:
-// https://stackoverflow.com/questions/72133316/libssl-so-1-1-cannot-open-shared-object-file-no-such-file-or-directory
+// https://stackoverflow.com/a/73603200/11173996

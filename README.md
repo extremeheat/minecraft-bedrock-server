@@ -39,6 +39,32 @@ const onStart = () => console.log('Server started!')
 bedrockServer.startServer('1.18.0', onStart, { 'server-port': 19132, 'online-mode': true, path: './bds' })
 ```
 
+#### Get latest server data
+From minecraft.net downloads
+```js
+bedrockServer.getLatestVersions().then(console.log)
+```
+to get
+```coffee
+Versions {
+  linux: {
+    version4: '1.20.72.01',
+    version3: '1.20.72',
+    url: 'https://minecraft.azureedge.net/bin-linux/bedrock-server-1.20.72.01.zip'
+  },
+  windows: {
+    version4: '1.20.72.01',
+    version3: '1.20.72',
+    url: 'https://minecraft.azureedge.net/bin-win/bedrock-server-1.20.72.01.zip'
+  },
+  macos: null,
+  preview: {
+    ...
+    macos: null
+  }
+}
+```
+
 ### Help screen
 
 ```

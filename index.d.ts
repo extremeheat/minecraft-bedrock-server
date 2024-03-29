@@ -1,4 +1,20 @@
 declare module "minecraft-bedrock-server" {
+  type LatestVersion = {
+    version4: string,
+    version3: string,
+    url: string
+  }
+  function getLatestVersions(): Promise<{
+    linux: LatestVersion,
+    windows: LatestVersion,
+    macos?: LatestVersion,
+    preview: {
+      linux: LatestVersion,
+      windows: LatestVersion,
+      macos?: LatestVersion
+    }
+  }>
+
   type GameMode = "survival" | "creative" | "adventure";
   type Difficulty = "peaceful" | "easy" | "normal" | "hard";
   type PermissionLevel = "visitor" | "member" | "operator";
