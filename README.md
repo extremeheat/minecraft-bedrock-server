@@ -5,7 +5,7 @@
 [![Try it on gitpod](https://img.shields.io/badge/try-on%20gitpod-brightgreen.svg)](https://gitpod.io/#https://github.com/extremeheat/minecraft-bedrock-server)
 
 
-Simple command line/software interface for starting a Minecraft bedrock server
+Simple command line program and API for starting a Minecraft Bedrock Edition server.
 
 ## Running & Installation
 
@@ -77,6 +77,10 @@ Options:
   --online      Whether to run in online mode
   --path        Custom path to the server directory
 ```
+
+## API
+
+See [./index.d.ts](the API docs).
 
 ## Testing
 

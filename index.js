@@ -103,7 +103,7 @@ async function download (os, version, root, path) {
 function eraseServer (version, options) {
   // Remove the server and try again
   const currentDir = process.cwd()
-  process.chdir(options.root || __dirname)
+  process.chdir(options.root || '.')
   const path = options.path ? options.path : 'bds-' + version
   debug('Removing server', path)
   fs.rmSync(path, { recursive: true, force: true })
@@ -136,6 +136,16 @@ function run (inheritStdout = true) {
   return cp.spawn(exe, inheritStdout ? { stdio: 'inherit' } : {})
 }
 
+async function downloadServer (version, options) {
+  const currentDir = process.cwd()
+  if (options.platform && !['win32', 'linux'].includes(options.platform)) throw Error('unsupported platform ' + options.platform)
+  const platform = options.platform || process.platform
+  const serverOs = platform === 'win32' ? 'win' : 'linux'
+  const ret = await download(serverOs, version, options.root || '.', options.path)
+  process.chdir(currentDir)
+  return ret
+}
+
 let lastHandle
 
 // Run the server
@@ -148,7 +158,7 @@ async function startServer (version, onStart, options = {}) {
   const currentDir = process.cwd()
   // Take the options.path and determine if it's an absolute path or not
   const path = options.path
-  const pathRoot = options.root || __dirname
+  const pathRoot = options.root || '.'
 
   await download(os, version, pathRoot, path) // and enter the directory
   debug('Configuring server', version)
@@ -205,4 +215,4 @@ async function startServerAndWait2 (version, withTimeout, options) {
   }
 }
 
-module.exports = { getLatestVersions, startServer, startServerAndWait, startServerAndWait2 }
+module.exports = { getLatestVersions, downloadServer, startServer, startServerAndWait, startServerAndWait2 }

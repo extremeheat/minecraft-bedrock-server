@@ -51,6 +51,10 @@ declare module "minecraft-bedrock-server" {
     path: string, // where to save the folder
     root: string // where the path is relative to (eg dirname)
   }
+
+  // Downloads the server for a specific platform
+  function downloadServer(version: string, options: ServerOptionsEx & { platform: 'win32' | 'linux' }): Promise<void>
+
   // Starts the server
   // Options is an array of server.properties options.
   // `options.path` is the path to where the server will be started.
