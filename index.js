@@ -103,7 +103,7 @@ async function download (os, version, root, path) {
 function eraseServer (version, options) {
   // Remove the server and try again
   const currentDir = process.cwd()
-  process.chdir(options.root || __dirname)
+  process.chdir(options.root || '.')
   const path = options.path ? options.path : 'bds-' + version
   debug('Removing server', path)
   fs.rmSync(path, { recursive: true, force: true })
@@ -148,7 +148,7 @@ async function startServer (version, onStart, options = {}) {
   const currentDir = process.cwd()
   // Take the options.path and determine if it's an absolute path or not
   const path = options.path
-  const pathRoot = options.root || __dirname
+  const pathRoot = options.root || '.'
 
   await download(os, version, pathRoot, path) // and enter the directory
   debug('Configuring server', version)
