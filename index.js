@@ -62,6 +62,9 @@ async function download (os, version, root, path) {
   }
   downloadLock = true
   process.chdir(root)
+  if (version.split('.').length < 3) {
+    throw new Error('minecraft-bedrock-server: A version string should contain at least 3 dots on Minecraft Bedrock Edition. Please add a .0 suffix: ' + version)
+  }
   const verStr = version.split('.').slice(0, 3).join('.')
   const dir = path || 'bds-' + version
 
@@ -160,10 +163,10 @@ async function startServer (version, onStart, options = {}) {
   const path = options.path
   const pathRoot = options.root || '.'
 
-  await download(os, version, pathRoot, path) // and enter the directory
-  debug('Configuring server', version)
+  const ver = await download(os, version, pathRoot, path) // and enter the directory
+  debug('Configuring server', ver)
   configure(options)
-  debug('Starting server', version)
+  debug('Starting server', ver)
   const handle = lastHandle = run(!onStart)
   handle.on('error', (...a) => {
     console.warn('*** THE MINECRAFT PROCESS CRASHED ***', a)

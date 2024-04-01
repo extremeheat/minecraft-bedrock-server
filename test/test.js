@@ -1,4 +1,5 @@
 /* eslint-env mocha */
+const cp = require('child_process')
 const bedrockServer = require('minecraft-bedrock-server')
 const fs = require('fs')
 const assert = require('assert')
@@ -32,6 +33,13 @@ describe('auxiliary methods', function () {
     assert(versions.preview.linux.url, 'Preview Linux URL exists')
     assert(versions.preview.windows.version3, 'Preview Windows version exists')
     assert(versions.preview.windows.url, 'Preview Windows URL exists')
+  })
+})
+
+describe('cli', function () {
+  it('works', function () {
+    const helpStr = cp.execSync('npx minecraft-bedrock-server --help').toString()
+    assert(helpStr)
   })
 })
 
