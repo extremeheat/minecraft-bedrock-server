@@ -68,19 +68,25 @@ Versions {
 ### Help screen
 
 ```
-minecraft-bedrock-server - v1.0.0
+minecraft-bedrock-server - v1.2.0
 Minecraft Bedrock Server runner
-
 Options:
-  --version, -v Version to connect as
-  --port        Port to listen on  (default: 19132)
-  --online      Whether to run in online mode
-  --path        Custom path to the server directory
+  --version, -v Version to download (use "latest" for latest)  
+  --port        Port to listen on for IPv4  (default: 19132)
+  --port6       Port to listen on for IPv6  (default: 19133)
+  --online      Whether to run in online mode  
+  --path        Custom path to the server directory  
+  --versions    Passing --versions will list all versions  
+  --download    Download (but not run) the server binary for this platfrom (default: linux)  
+Usage:
+  minecraft-bedrock-server --version latest      Start a server on the latest version
+  minecraft-bedrock-server --versions            List all avaliable versions
+  minecraft-bedrock-server -v 1.20.0 --download  Download v1.20
 ```
 
 ## API
 
-See [./index.d.ts](the API docs).
+See [the API docs](index.d.ts).
 
 ## Testing
 
