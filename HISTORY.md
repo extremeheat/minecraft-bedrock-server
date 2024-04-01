@@ -1,3 +1,6 @@
+## 1.3.0
+* [Add downloadServer API method (#6)](https://github.com/extremeheat/minecraft-bedrock-server/commit/ad8f8d110fe5746375929f6e765405561a3da4e0) (thanks @extremeheat)
+
 ## 1.2.1
 * [Fix incorrect options.root default (#5)](https://github.com/extremeheat/minecraft-bedrock-server/commit/1eb371aa7fc203bbab2752e1fbc96378e165fd9f) (thanks @extremeheat)
 
