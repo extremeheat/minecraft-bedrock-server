@@ -62,10 +62,13 @@ async function download (os, version, root, path) {
   }
   downloadLock = true
   process.chdir(root)
+  if (version.split('.').length < 3) {
+    throw new Error('minecraft-bedrock-server: A version string should contain at least 3 dots on Minecraft Bedrock Edition. Please add a .0 suffix: ' + version)
+  }
   const verStr = version.split('.').slice(0, 3).join('.')
   const dir = path || 'bds-' + version
 
-  if (fs.existsSync(dir) && fs.readdirSync(dir).length) {
+  if (fs.existsSync(dir) && fs.readdirSync(dir).length > 1) {
     process.chdir(dir) // Enter server folder
     debug('Already downloaded', version)
     downloadLock = false
@@ -94,7 +97,7 @@ async function download (os, version, root, path) {
   await get(found, 'bds.zip')
   console.info('⚡ Unzipping')
   // Unzip server
-  if (process.platform === 'linux') cp.execSync('unzip -u bds.zip && chmod +777 ./bedrock_server')
+  if (process.platform === 'linux') cp.execSync('unzip -u bds.zip')
   else cp.execSync('tar -xf bds.zip')
   downloadLock = false
   return verStr
@@ -129,11 +132,32 @@ function configure (options = {}) {
     config += `\n${o}=${opts[o]}`
   }
   fs.writeFileSync('./server.properties', config)
+  if (process.platform === 'linux') {
+    cp.execSync('chmod +777 ./bedrock_server')
+  }
 }
 
 function run (inheritStdout = true) {
   const exe = process.platform === 'win32' ? 'bedrock_server.exe' : './bedrock_server'
   return cp.spawn(exe, inheritStdout ? { stdio: 'inherit' } : {})
+}
+
+async function downloadServer (version, options) {
+  const platFix = {
+    win32: 'win',
+    windows: 'win',
+    linux: 'linux',
+    macos: 'darwin'
+  }
+  if (options.platform && !platFix[options.platform]) {
+    throw new Error('Unsupported specified platform: ' + options.platform)
+  }
+  const platform = options.platform || process.platform
+  const serverOs = platFix[platform] || 'linux'
+  const currentDir = process.cwd()
+  const ret = await download(serverOs, version, options.root || '.', options.path)
+  process.chdir(currentDir)
+  return ret
 }
 
 let lastHandle
@@ -150,10 +174,10 @@ async function startServer (version, onStart, options = {}) {
   const path = options.path
   const pathRoot = options.root || '.'
 
-  await download(os, version, pathRoot, path) // and enter the directory
-  debug('Configuring server', version)
+  const ver = await download(os, version, pathRoot, path) // and enter the directory
+  debug('Configuring server', ver)
   configure(options)
-  debug('Starting server', version)
+  debug('Starting server', ver)
   const handle = lastHandle = run(!onStart)
   handle.on('error', (...a) => {
     console.warn('*** THE MINECRAFT PROCESS CRASHED ***', a)
@@ -205,4 +229,4 @@ async function startServerAndWait2 (version, withTimeout, options) {
   }
 }
 
-module.exports = { getLatestVersions, startServer, startServerAndWait, startServerAndWait2 }
+module.exports = { getLatestVersions, downloadServer, startServer, startServerAndWait, startServerAndWait2 }

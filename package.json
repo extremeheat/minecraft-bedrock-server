@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/extremeheat/minecraft-bedrock-server#readme",
   "dependencies": {
-    "basic-args": "^1.2.0",
+    "basic-args": "^1.4.0",
     "debug": "^4.3.3"
   },
   "devDependencies": {
