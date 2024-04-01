@@ -68,7 +68,7 @@ async function download (os, version, root, path) {
   const verStr = version.split('.').slice(0, 3).join('.')
   const dir = path || 'bds-' + version
 
-  if (fs.existsSync(dir) && fs.readdirSync(dir).length) {
+  if (fs.existsSync(dir) && fs.readdirSync(dir).length > 1) {
     process.chdir(dir) // Enter server folder
     debug('Already downloaded', version)
     downloadLock = false
