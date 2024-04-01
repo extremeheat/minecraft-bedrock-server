@@ -24,7 +24,6 @@ const opt = require('basic-args')({
   preprocess (options) {
     if (options.download === true) {
       options.download = process.platform
-      downloadSetByUs = true
     }
     if (options.versions) {
       options.version = '*'
