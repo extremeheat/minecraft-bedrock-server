@@ -97,7 +97,7 @@ async function download (os, version, root, path) {
   await get(found, 'bds.zip')
   console.info('⚡ Unzipping')
   // Unzip server
-  if (process.platform === 'linux') cp.execSync('unzip -u bds.zip && chmod +777 ./bedrock_server')
+  if (process.platform === 'linux') cp.execSync('unzip -u bds.zip')
   else cp.execSync('tar -xf bds.zip')
   downloadLock = false
   return verStr
@@ -132,6 +132,9 @@ function configure (options = {}) {
     config += `\n${o}=${opts[o]}`
   }
   fs.writeFileSync('./server.properties', config)
+  if (process.platform === 'linux') {
+    cp.execSync('chmod +777 ./bedrock_server')
+  }
 }
 
 function run (inheritStdout = true) {
