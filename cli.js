@@ -42,7 +42,7 @@ async function main () {
       version = versions.linux.version3
     }
     if (opt.download) {
-      await lib.downloadServer(version, opt)
+      await lib.downloadServer(version, { platform: opt.download, ...opt })
     } else {
       const customOptions = opt._ || {}
       await lib.startServer(version, /* onStart callback */ null, {

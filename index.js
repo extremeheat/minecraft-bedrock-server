@@ -140,10 +140,18 @@ function run (inheritStdout = true) {
 }
 
 async function downloadServer (version, options) {
-  const currentDir = process.cwd()
-  if (options.platform && !['win32', 'linux'].includes(options.platform)) throw Error('unsupported platform ' + options.platform)
+  const platFix = {
+    win32: 'win',
+    windows: 'win',
+    linux: 'linux',
+    macos: 'darwin'
+  }
+  if (options.platform && !platFix[options.platform]) {
+    throw new Error('Unsupported specified platform: ' + options.platform)
+  }
   const platform = options.platform || process.platform
-  const serverOs = platform === 'win32' ? 'win' : 'linux'
+  const serverOs = platFix[platform] || 'linux'
+  const currentDir = process.cwd()
   const ret = await download(serverOs, version, options.root || '.', options.path)
   process.chdir(currentDir)
   return ret
