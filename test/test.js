@@ -4,6 +4,7 @@ const bedrockServer = require('minecraft-bedrock-server')
 const fs = require('fs')
 const assert = require('assert')
 const { join } = require('path')
+const { BedrockVanillaServer } = require('../src')
 const versions = ['1.16.210', '1.18.0']
 
 for (const version of versions) {
@@ -20,6 +21,13 @@ for (const version of versions) {
     })
   })
 }
+
+describe('helpers work', function () {
+  it('works on 1.18.0', async function () {
+    const server = await BedrockVanillaServer.prepare('1.18.0')
+    await server.clearBehaviorPacks()
+  })
+})
 
 describe('auxiliary methods', function () {
   it('getLatestVersions works', async function () {

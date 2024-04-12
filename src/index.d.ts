@@ -73,11 +73,11 @@ declare module "minecraft-bedrock-server" {
     startAndWait(withTimeout: number): Promise<ChildProcess>
 
     // Helpers
-    addResourcePack(packPath: string, packName?: string): void
-    addBehaviorPack(packPath: string, packName?: string): void
-    addQuickScript({ name, manifest, scripts }: { name?: string, manifest: any, scripts: Record<string, string> }, eraseExisting?: boolean, enable?: boolean): void
-    clearBehaviorPacks(): void
-    disableBehaviorPack(uuid: string): void
-    enableBehaviorPack(uuid: string, version: string): void
+    addResourcePack(packPath: string, packName?: string): Promise<void>
+    addBehaviorPack(packPath: string, packName?: string): Promise<void>
+    addQuickScript({ name, manifest, scripts }: { name?: string, manifest: any, scripts: Record<string, string> }, eraseExisting?: boolean, enable?: boolean): Promise<void>
+    clearBehaviorPacks(): Promise<void>
+    disableBehaviorPack(uuid: string): Promise<void>
+    enableBehaviorPack(uuid: string, version: string): Promise<void>
   }
 }
