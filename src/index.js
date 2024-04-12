@@ -244,7 +244,7 @@ class BedrockVanillaServer {
   }
 
   async startAndWaitReady (timeout = 1000 * 60 * 5) {
-    this.activeHandle = startServerAndWait(this.version, timeout, this.options)
+    this.activeHandle = await startServerAndWait(this.version, timeout, this.options)
     this.activeHandle.stop = () => this.stop()
     this.activeHandle.on('exit', () => { this.activeHandle = null })
     return this.activeHandle
