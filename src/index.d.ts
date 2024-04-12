@@ -55,7 +55,7 @@ declare module "minecraft-bedrock-server" {
   }
 
   // Downloads the server for a specific platform
-  function downloadServer(version: string, options: ServerOptionsEx & { platform: 'win32' | 'linux' }): Promise<void>
+  function downloadServer(version: string, options: ServerOptionsEx & { platform: 'win32' | 'linux' }): Promise<{ path: string, version: string }>
 
   // Starts the server
   // Options is an array of server.properties options.
@@ -69,6 +69,9 @@ declare module "minecraft-bedrock-server" {
   function startServerAndWait2(version: string, withTimeout: number, options: ServerOptionsEx): Promise<ChildProcess>
 
   class BedrockVanillaServer {
+    public path: string
+    public version: string
+
     static prepare(version: string, options: ServerOptionsEx): Promise<BedrockVanillaServer>
     startAndWait(withTimeout: number): Promise<ChildProcess>
 
@@ -79,5 +82,7 @@ declare module "minecraft-bedrock-server" {
     clearBehaviorPacks(): Promise<void>
     disableBehaviorPack(uuid: string): Promise<void>
     enableBehaviorPack(uuid: string, version: string): Promise<void>
+    // Enables or disables experiments. If worldName is provided, it will only affect that world, otherwise it will affect all worlds.
+    toggleExperiments(experiments: Record<string, bool>, worldName?: string): Promise<void>
   }
 }

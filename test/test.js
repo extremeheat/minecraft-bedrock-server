@@ -26,6 +26,9 @@ describe('helpers work', function () {
   it('works on 1.18.0', async function () {
     const server = await BedrockVanillaServer.prepare('1.18.0')
     await server.clearBehaviorPacks()
+    await server.toggleExperiments({
+      gametest: true
+    })
   })
 })
 

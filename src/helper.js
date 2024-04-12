@@ -1,4 +1,5 @@
 const fs = require('fs')
+const nbt = require('prismarine-nbt')
 const { join } = require('path')
 
 function addResourcePack (serverPath, packPath, packName) {
@@ -34,11 +35,13 @@ function addQuickScript (serverPath, { name, manifest, scripts }, eraseExisting 
   }
 }
 
-function clearBehaviorPacks (serverPath) {
-  const serverPacksPath1 = join(serverPath, 'development_behavior_packs')
-  fs.rmdirSync(serverPacksPath1, { recursive: true })
-  const serverPacksPath2 = join(serverPath, 'behavior_packs')
-  fs.rmdirSync(serverPacksPath2, { recursive: true })
+function clearBehaviorPacks (serverPath, erase = true) {
+  if (erase) {
+    const serverPacksPath1 = join(serverPath, 'development_behavior_packs')
+    fs.rmdirSync(serverPacksPath1, { recursive: true })
+    const serverPacksPath2 = join(serverPath, 'behavior_packs')
+    fs.rmdirSync(serverPacksPath2, { recursive: true })
+  }
   // remove each world's world_behavior_packs.json
   const worlds = fs.readdirSync(join(serverPath, 'worlds'))
   for (const world of worlds) {
@@ -81,6 +84,30 @@ function enableBehaviorPack (serverPath, uuid, version) {
   }
 }
 
+function toggleExperiments (serverPath, list, worldName) {
+  if (!worldName) {
+    const worlds = fs.readdirSync(join(serverPath, 'worlds'))
+    for (const world of worlds) {
+      toggleExperiments(serverPath, list, world)
+    }
+    return
+  }
+  const worldPath = join(serverPath, 'worlds', worldName)
+  const levelDatPath = join(worldPath, 'level.dat')
+  const oldLevelBuf = fs.readFileSync(levelDatPath)
+  const levelDat = nbt.parseUncompressed(oldLevelBuf.slice(8), 'little')
+  const experiments = levelDat.value.value.Experiments.value
+  experiments.experiments_ever_used = nbt.byte(1)
+  experiments.saved_with_toggled_experiments = nbt.byte(1)
+  for (const [key, value] of Object.entries(list)) {
+    experiments[key] = nbt.byte(value ? 1 : 0)
+  }
+  const tagBody = nbt.writeUncompressed(levelDat, 'little')
+  const tagHead = oldLevelBuf.slice(0, 8)
+  tagHead.writeUInt32LE(tagBody.length, 4)
+  fs.writeFileSync(levelDatPath, Buffer.concat([tagHead, tagBody]))
+}
+
 function injectServerHelpers (server) {
   server.addResourcePack = addResourcePack.bind(null, server.path)
   server.addBehaviorPack = addBehaviorPack.bind(null, server.path)
@@ -88,6 +115,7 @@ function injectServerHelpers (server) {
   server.clearBehaviorPacks = clearBehaviorPacks.bind(null, server.path)
   server.disableBehaviorPack = disableBehaviorPack.bind(null, server.path)
   server.enableBehaviorPack = enableBehaviorPack.bind(null, server.path)
+  server.toggleExperiments = toggleExperiments.bind(null, server.path)
 }
 
 module.exports = {

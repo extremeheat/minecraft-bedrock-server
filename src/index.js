@@ -244,7 +244,7 @@ class BedrockVanillaServer {
   }
 
   static async prepare (version, options) {
-    const dl = await downloadServer(version, options)
+    const dl = await downloadServer(version, options || {})
     return new BedrockVanillaServer(dl.path)
   }
 
