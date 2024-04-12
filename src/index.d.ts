@@ -78,7 +78,7 @@ declare module "minecraft-bedrock-server" {
     // Helpers
     addResourcePack(packPath: string, packName?: string): Promise<void>
     addBehaviorPack(packPath: string, packName?: string): Promise<void>
-    addQuickScript({ name, manifest, scripts }: { name?: string, manifest: any, scripts: Record<string, string> }, eraseExisting?: boolean, enable?: boolean): Promise<void>
+    addQuickScript({ name, manifest, files }: { name?: string, manifest: any, files: Record<string, string> }, eraseExisting?: boolean, enable?: boolean): Promise<void>
     clearBehaviorPacks(eraseDevelopmentPacks?: boolean): Promise<void>
     disableBehaviorPack(uuid: string): Promise<void>
     enableBehaviorPack(uuid: string, version: string): Promise<void>

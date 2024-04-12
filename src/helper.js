@@ -14,7 +14,8 @@ function addBehaviorPack (serverPath, packPath, packName) {
   fs.copyFileSync(packPath, join(serverPackPath, packName))
 }
 
-function addQuickScript (serverPath, { name, manifest, scripts }, eraseExisting = true, enable = true) {
+function addQuickScript (serverPath, { name, manifest, scripts, files }, eraseExisting = true, enable = true) {
+  files = files || scripts
   const serverPacksPath = join(serverPath, 'development_behavior_packs')
   name = name || manifest.header.name
   const packPath = join(serverPacksPath, name)
@@ -26,7 +27,7 @@ function addQuickScript (serverPath, { name, manifest, scripts }, eraseExisting 
   // write the manifest
   fs.writeFileSync(join(packPath, 'manifest.json'), JSON.stringify(manifest, null, 2))
   // write each of the scripts (a Record<relative path string, current path string>)
-  for (const [relativePath, currentPath] of Object.entries(scripts)) {
+  for (const [relativePath, currentPath] of Object.entries(files)) {
     const finalPath = join(packPath, relativePath)
     const finalPathDir = dirname(finalPath)
     fs.mkdirSync(finalPathDir, { recursive: true })
