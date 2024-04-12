@@ -25,11 +25,12 @@ describe('helpers work', function () {
   this.timeout(90000)
   it('works on 1.18.0', async function () {
     const server = await bedrockServer.prepare('1.18.0')
-    await server.startAndWait(60000)
+    const handle = await server.startAndWait(60000)
     await server.clearBehaviorPacks()
     await server.toggleExperiments({
       gametest: true
     })
+    handle.kill()
   })
 })
 
