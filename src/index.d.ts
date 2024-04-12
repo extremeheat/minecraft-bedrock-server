@@ -71,7 +71,7 @@ declare module "minecraft-bedrock-server" {
   interface BedrockVanillaServer {
     path: string
     version: string
-    startAndWait(withTimeout: number): Promise<ChildProcess>
+    startAndWaitReady(withTimeout: number): Promise<ChildProcess>
 
     // Helpers
     addResourcePack(packPath: string, packName?: string): Promise<void>

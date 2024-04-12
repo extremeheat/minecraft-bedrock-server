@@ -243,7 +243,7 @@ class BedrockVanillaServer {
     helpers.injectServerHelpers(this)
   }
 
-  async startAndWait (timeout = 1000 * 60 * 5) {
+  async startAndWaitReady (timeout = 1000 * 60 * 5) {
     return startServerAndWait(this.version, timeout, this.options)
   }
 }
