@@ -3,6 +3,8 @@ const fs = require('fs')
 const cp = require('child_process')
 const debug = process.env.CI ? console.debug : require('debug')('minecraft-bedrock-server')
 const https = require('https')
+const helpers = require('./helper')
+
 const serversHtmlURL = 'https://www.minecraft.net/en-us/download/server/bedrock'
 
 function head (url) {
@@ -72,7 +74,7 @@ async function download (os, version, root, path) {
     process.chdir(dir) // Enter server folder
     debug('Already downloaded', version)
     downloadLock = false
-    return verStr
+    return { version: verStr, path: process.cwd() }
   }
   try { fs.mkdirSync(dir) } catch { }
 
@@ -100,7 +102,7 @@ async function download (os, version, root, path) {
   if (process.platform === 'linux') cp.execSync('unzip -u bds.zip')
   else cp.execSync('tar -xf bds.zip')
   downloadLock = false
-  return verStr
+  return { version: verStr, path: process.cwd() }
 }
 
 function eraseServer (version, options) {
@@ -175,9 +177,9 @@ async function startServer (version, onStart, options = {}) {
   const pathRoot = options.root || '.'
 
   const ver = await download(os, version, pathRoot, path) // and enter the directory
-  debug('Configuring server', ver)
+  debug('Configuring server', ver.version)
   configure(options)
-  debug('Starting server', ver)
+  debug('Starting server', ver.version)
   const handle = lastHandle = run(!onStart)
   handle.on('error', (...a) => {
     console.warn('*** THE MINECRAFT PROCESS CRASHED ***', a)
@@ -185,10 +187,14 @@ async function startServer (version, onStart, options = {}) {
   })
   if (onStart) {
     let stdout = ''
-    handle.stdout.on('data', data => {
+    function processLine (data) {
       stdout += data
-      if (stdout.includes('Server started')) onStart()
-    })
+      if (stdout.includes('Server started')) {
+        onStart()
+        handle.stdout.off('data', processLine)
+      }
+    }
+    handle.stdout.on('data', processLine)
     handle.stdout.pipe(process.stdout)
     handle.stderr.pipe(process.stdout)
   }
@@ -229,4 +235,40 @@ async function startServerAndWait2 (version, withTimeout, options) {
   }
 }
 
-module.exports = { getLatestVersions, downloadServer, startServer, startServerAndWait, startServerAndWait2 }
+class BedrockVanillaServer {
+  constructor (path, version, options) {
+    this.path = path || '.'
+    this.version = version
+    this.options = options
+    helpers.injectServerHelpers(this)
+  }
+
+  async startAndWaitReady (timeout = 1000 * 60 * 5) {
+    this.activeHandle = await startServerAndWait(this.version, timeout, this.options)
+    this.activeHandle.stop = () => this.stop()
+    this.activeHandle.on('exit', () => { this.activeHandle = null })
+    return this.activeHandle
+  }
+
+  async stop () {
+    return new Promise((resolve) => {
+      if (this.activeHandle) {
+        this.activeHandle.on('exit', resolve)
+        this.activeHandle.stdin.write('stop\n')
+        setTimeout(() => {
+          this.activeHandle.kill()
+          this.activeHandle = null
+        }, 1000)
+      } else {
+        resolve()
+      }
+    })
+  }
+}
+
+async function prepare (version, options) {
+  const dl = await downloadServer(version, options || {})
+  return new BedrockVanillaServer(dl.path, dl.version, options || {})
+}
+
+module.exports = { getLatestVersions, downloadServer, startServer, startServerAndWait, startServerAndWait2, prepare }

@@ -1,3 +1,5 @@
+import { ChildProcess } from "child_process"
+
 declare module "minecraft-bedrock-server" {
   type LatestVersion = {
     version4: string,
@@ -53,7 +55,7 @@ declare module "minecraft-bedrock-server" {
   }
 
   // Downloads the server for a specific platform
-  function downloadServer(version: string, options: ServerOptionsEx & { platform: 'win32' | 'linux' }): Promise<void>
+  function downloadServer(version: string, options: ServerOptionsEx & { platform: 'win32' | 'linux' }): Promise<{ path: string, version: string }>
 
   // Starts the server
   // Options is an array of server.properties options.
@@ -65,4 +67,25 @@ declare module "minecraft-bedrock-server" {
 
   // Starts the server and waits. On failure, reset state and try again once more.
   function startServerAndWait2(version: string, withTimeout: number, options: ServerOptionsEx): Promise<ChildProcess>
+
+  interface BedrockVanillaServer {
+    path: string
+    version: string
+    startAndWaitReady(withTimeout: number): Promise<ChildProcess>
+    // Stops the server after sending /stop to safely save everything
+    stop(): Promise<void>
+
+    // Helpers
+    addResourcePack(packPath: string, packName?: string): Promise<void>
+    addBehaviorPack(packPath: string, packName?: string): Promise<void>
+    addQuickScript({ name, manifest, scripts }: { name?: string, manifest: any, scripts: Record<string, string> }, eraseExisting?: boolean, enable?: boolean): Promise<void>
+    clearBehaviorPacks(eraseDevelopmentPacks?: boolean): Promise<void>
+    disableBehaviorPack(uuid: string): Promise<void>
+    enableBehaviorPack(uuid: string, version: string): Promise<void>
+    // Enables or disables experiments. If worldName is provided, it will only affect that world, otherwise it will affect all worlds.
+    toggleExperiments(experiments: Record<string, bool>, worldName?: string): Promise<void>
+  }
+
+  // Wrapper for downloadServer, that then returns a new BedrockVanillaServer instance with helpers
+  function prepare(version: string, options: ServerOptionsEx): Promise<BedrockVanillaServer>
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const lib = require('minecraft-bedrock-server')
-const { version } = require('./package.json')
+const { version } = require('../package.json')
 
 const opt = require('basic-args')({
   name: 'minecraft-bedrock-server',
