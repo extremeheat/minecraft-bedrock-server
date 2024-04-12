@@ -1,3 +1,5 @@
+import { ChildProcess } from "child_process"
+
 declare module "minecraft-bedrock-server" {
   type LatestVersion = {
     version4: string,
@@ -65,4 +67,17 @@ declare module "minecraft-bedrock-server" {
 
   // Starts the server and waits. On failure, reset state and try again once more.
   function startServerAndWait2(version: string, withTimeout: number, options: ServerOptionsEx): Promise<ChildProcess>
+
+  class BedrockVanillaServer {
+    static prepare(version: string, options: ServerOptionsEx): Promise<BedrockVanillaServer>
+    startAndWait(withTimeout: number): Promise<ChildProcess>
+
+    // Helpers
+    addResourcePack(packPath: string, packName?: string): void
+    addBehaviorPack(packPath: string, packName?: string): void
+    addQuickScript({ name, manifest, scripts }: { name?: string, manifest: any, scripts: Record<string, string> }, eraseExisting?: boolean, enable?: boolean): void
+    clearBehaviorPacks(): void
+    disableBehaviorPack(uuid: string): void
+    enableBehaviorPack(uuid: string, version: string): void
+  }
 }

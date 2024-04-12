@@ -191,7 +191,7 @@ async function startServer (version, onStart, options = {}) {
       stdout += data
       if (stdout.includes('Server started')) {
         onStart()
-        handle.stdout.off('data', process)
+        handle.stdout.off('data', processLine)
       }
     }
     handle.stdout.on('data', processLine)
