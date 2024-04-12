@@ -1,3 +1,6 @@
+## 1.4.0
+* [Add BedrockVanillaServer class with various helper methods (#9)](https://github.com/extremeheat/minecraft-bedrock-server/commit/7f9fe95dec0b758738e7a030b5d438e3061132c2) (thanks @extremeheat)
+
 ## 1.3.0
 * [Add downloadServer API method (#6)](https://github.com/extremeheat/minecraft-bedrock-server/commit/ad8f8d110fe5746375929f6e765405561a3da4e0) (thanks @extremeheat)
 
