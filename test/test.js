@@ -24,6 +24,7 @@ for (const version of versions) {
 describe('helpers work', function () {
   it('works on 1.18.0', async function () {
     const server = await bedrockServer.prepare('1.18.0')
+    await server.startAndWait(60000)
     await server.clearBehaviorPacks()
     await server.toggleExperiments({
       gametest: true

@@ -45,6 +45,7 @@ function clearBehaviorPacks (serverPath, eraseDev = true) {
     // Now recreate empty directories
     fs.mkdirSync(serverPacksPath1, { recursive: true })
   }
+  if (!fs.existsSync(join(serverPath, 'worlds'))) return
   // remove each world's world_behavior_packs.json
   const worlds = fs.readdirSync(join(serverPath, 'worlds'))
   for (const world of worlds) {
