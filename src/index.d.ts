@@ -72,6 +72,8 @@ declare module "minecraft-bedrock-server" {
     path: string
     version: string
     startAndWaitReady(withTimeout: number): Promise<ChildProcess>
+    // Stops the server after sending /stop to safely save everything
+    stop(): Promise<void>
 
     // Helpers
     addResourcePack(packPath: string, packName?: string): Promise<void>
