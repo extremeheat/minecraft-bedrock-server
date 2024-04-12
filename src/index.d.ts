@@ -68,21 +68,22 @@ declare module "minecraft-bedrock-server" {
   // Starts the server and waits. On failure, reset state and try again once more.
   function startServerAndWait2(version: string, withTimeout: number, options: ServerOptionsEx): Promise<ChildProcess>
 
-  class BedrockVanillaServer {
-    public path: string
-    public version: string
-
-    static prepare(version: string, options: ServerOptionsEx): Promise<BedrockVanillaServer>
+  interface BedrockVanillaServer {
+    path: string
+    version: string
     startAndWait(withTimeout: number): Promise<ChildProcess>
 
     // Helpers
     addResourcePack(packPath: string, packName?: string): Promise<void>
     addBehaviorPack(packPath: string, packName?: string): Promise<void>
     addQuickScript({ name, manifest, scripts }: { name?: string, manifest: any, scripts: Record<string, string> }, eraseExisting?: boolean, enable?: boolean): Promise<void>
-    clearBehaviorPacks(): Promise<void>
+    clearBehaviorPacks(eraseDevelopmentPacks?: boolean): Promise<void>
     disableBehaviorPack(uuid: string): Promise<void>
     enableBehaviorPack(uuid: string, version: string): Promise<void>
     // Enables or disables experiments. If worldName is provided, it will only affect that world, otherwise it will affect all worlds.
     toggleExperiments(experiments: Record<string, bool>, worldName?: string): Promise<void>
   }
+
+  // Wrapper for downloadServer, that then returns a new BedrockVanillaServer instance with helpers
+  function prepare(version: string, options: ServerOptionsEx): Promise<BedrockVanillaServer>
 }

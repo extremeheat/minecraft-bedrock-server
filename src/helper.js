@@ -1,6 +1,6 @@
 const fs = require('fs')
 const nbt = require('prismarine-nbt')
-const { join } = require('path')
+const { join, dirname } = require('path')
 
 function addResourcePack (serverPath, packPath, packName) {
   const serverPackPath = join(serverPath, packPath.includes('.') ? 'development_resource_packs' : 'resource_packs')
@@ -19,7 +19,7 @@ function addQuickScript (serverPath, { name, manifest, scripts }, eraseExisting 
   name = name || manifest.header.name
   const packPath = join(serverPacksPath, name)
   if (eraseExisting) {
-    fs.rmdirSync(packPath, { recursive: true })
+    fs.rmSync(packPath, { recursive: true, force: true })
   }
   // make a directory for this pack
   fs.mkdirSync(join(serverPacksPath, name), { recursive: true })
@@ -27,7 +27,10 @@ function addQuickScript (serverPath, { name, manifest, scripts }, eraseExisting 
   fs.writeFileSync(join(packPath, 'manifest.json'), JSON.stringify(manifest, null, 2))
   // write each of the scripts (a Record<relative path string, current path string>)
   for (const [relativePath, currentPath] of Object.entries(scripts)) {
-    fs.copyFileSync(currentPath, join(packPath, relativePath))
+    const finalPath = join(packPath, relativePath)
+    const finalPathDir = dirname(finalPath)
+    fs.mkdirSync(finalPathDir, { recursive: true })
+    fs.copyFileSync(currentPath, finalPath)
   }
   // enable the pack
   if (enable) {
@@ -35,12 +38,12 @@ function addQuickScript (serverPath, { name, manifest, scripts }, eraseExisting 
   }
 }
 
-function clearBehaviorPacks (serverPath, erase = true) {
-  if (erase) {
+function clearBehaviorPacks (serverPath, eraseDev = true) {
+  if (eraseDev) {
     const serverPacksPath1 = join(serverPath, 'development_behavior_packs')
-    fs.rmdirSync(serverPacksPath1, { recursive: true })
-    const serverPacksPath2 = join(serverPath, 'behavior_packs')
-    fs.rmdirSync(serverPacksPath2, { recursive: true })
+    fs.rmSync(serverPacksPath1, { recursive: true, force: true })
+    // Now recreate empty directories
+    fs.mkdirSync(serverPacksPath1, { recursive: true })
   }
   // remove each world's world_behavior_packs.json
   const worlds = fs.readdirSync(join(serverPath, 'worlds'))
@@ -74,12 +77,13 @@ function enableBehaviorPack (serverPath, uuid, version) {
   for (const world of worlds) {
     const worldPath = join(serverPath, 'worlds', world)
     const worldBehaviorPacksPath = join(worldPath, 'world_behavior_packs.json')
+    const entry = { pack_id: uuid, version }
     if (fs.existsSync(worldBehaviorPacksPath)) {
       const now = JSON.parse(fs.readFileSync(worldBehaviorPacksPath))
-      now.push({ pack_id: uuid, version })
+      now.push(entry)
       fs.writeFileSync(worldBehaviorPacksPath, JSON.stringify(now, null, 2))
     } else {
-      fs.writeFileSync(worldBehaviorPacksPath, JSON.stringify([{ pack_id: uuid, version }], null, 2))
+      fs.writeFileSync(worldBehaviorPacksPath, JSON.stringify([entry], null, 2))
     }
   }
 }
@@ -96,7 +100,7 @@ function toggleExperiments (serverPath, list, worldName) {
   const levelDatPath = join(worldPath, 'level.dat')
   const oldLevelBuf = fs.readFileSync(levelDatPath)
   const levelDat = nbt.parseUncompressed(oldLevelBuf.slice(8), 'little')
-  const experiments = levelDat.value.value.Experiments.value
+  const experiments = levelDat.value.experiments.value
   experiments.experiments_ever_used = nbt.byte(1)
   experiments.saved_with_toggled_experiments = nbt.byte(1)
   for (const [key, value] of Object.entries(list)) {

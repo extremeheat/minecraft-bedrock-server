@@ -243,14 +243,14 @@ class BedrockVanillaServer {
     helpers.injectServerHelpers(this)
   }
 
-  static async prepare (version, options) {
-    const dl = await downloadServer(version, options || {})
-    return new BedrockVanillaServer(dl.path)
-  }
-
   async startAndWait (timeout = 1000 * 60 * 5) {
-    return startServerAndWait(this.version, timeout, { path: this.path })
+    return startServerAndWait(this.version, timeout, this.options)
   }
 }
 
-module.exports = { getLatestVersions, downloadServer, startServer, startServerAndWait, startServerAndWait2, BedrockVanillaServer }
+async function prepare (version, options) {
+  const dl = await downloadServer(version, options || {})
+  return new BedrockVanillaServer(dl.path, dl.version, options || {})
+}
+
+module.exports = { getLatestVersions, downloadServer, startServer, startServerAndWait, startServerAndWait2, prepare }
