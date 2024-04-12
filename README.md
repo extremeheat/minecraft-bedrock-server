@@ -5,7 +5,7 @@
 [![Try it on gitpod](https://img.shields.io/badge/try-on%20gitpod-brightgreen.svg)](https://gitpod.io/#https://github.com/extremeheat/minecraft-bedrock-server)
 
 
-Simple command line program and API for starting a Minecraft Bedrock Edition server.
+Command line program (CLI) and API for starting and working with Minecraft Bedrock Edition servers.
 
 ## Running & Installation
 
@@ -81,7 +81,7 @@ Options:
 Usage:
   minecraft-bedrock-server --version latest      Start a server on the latest version
   minecraft-bedrock-server --versions            List all avaliable versions
-  minecraft-bedrock-server -v 1.20.0 --download  Download v1.20
+  minecraft-bedrock-server -v 1.20.0 --download  Download (but not run) v1.20
 ```
 
 ## API
@@ -89,8 +89,7 @@ Usage:
 See [the API docs](index.d.ts).
 
 ## Testing
-
-```npm test```
+`npm test`
 
 ## History
 
