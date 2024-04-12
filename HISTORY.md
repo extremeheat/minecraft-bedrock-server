@@ -1,3 +1,6 @@
+## 1.4.1
+* [Rename addQuickScript({ scripts }) -> addQuickScript({ files }) for clarity](https://github.com/extremeheat/minecraft-bedrock-server/commit/21820697b6e48d022012b134760f79ba19c7d511) (thanks @extremeheat)
+
 ## 1.4.0
 * [Add BedrockVanillaServer class with various helper methods (#9)](https://github.com/extremeheat/minecraft-bedrock-server/commit/7f9fe95dec0b758738e7a030b5d438e3061132c2) (thanks @extremeheat)
 
