@@ -86,7 +86,7 @@ Usage:
 
 ## API
 
-See [the API docs](index.d.ts).
+See the exported [TypeScript defs for method docs](src/index.d.ts).
 
 ## Testing
 `npm test`
