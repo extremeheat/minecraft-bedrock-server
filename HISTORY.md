@@ -1,3 +1,8 @@
+## 1.4.2
+* [Update server download URL (#13)](https://github.com/extremeheat/minecraft-bedrock-server/commit/e3e73ebee2d26a37d7914979258d402c542017ff) (thanks @extremeheat)
+* [Update index.d.ts](https://github.com/extremeheat/minecraft-bedrock-server/commit/6788b79f91285da6d37bfd19217dc7cf9c19f1db) (thanks @extremeheat)
+* [Update README.md link](https://github.com/extremeheat/minecraft-bedrock-server/commit/61be2682b9fb8185390b7367d3df9fc050e38000) (thanks @extremeheat)
+
 ## 1.4.1
 * [Rename addQuickScript({ scripts }) -> addQuickScript({ files }) for clarity](https://github.com/extremeheat/minecraft-bedrock-server/commit/21820697b6e48d022012b134760f79ba19c7d511) (thanks @extremeheat)
 
