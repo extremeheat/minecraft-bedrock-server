@@ -79,7 +79,7 @@ async function download (os, version, root, path) {
   try { fs.mkdirSync(dir) } catch { }
 
   process.chdir(dir) // Enter server folder
-  const url = (os, version) => `https://minecraft.azureedge.net/bin-${os}/bedrock-server-${version}.zip`
+  const url = (os, version) => `https://www.minecraft.net/bedrockdedicatedserver/bin-${os}/bedrock-server-${version}.zip`
 
   let found = false
 
