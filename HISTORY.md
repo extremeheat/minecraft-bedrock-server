@@ -1,3 +1,6 @@
+## 1.4.3
+* [Update download finder](https://github.com/extremeheat/minecraft-bedrock-server/commit/6c5f28b8b3f8436802d5cea70aaf181d379aff50) (thanks @extremeheat)
+
 ## 1.4.2
 * [Update server download URL (#13)](https://github.com/extremeheat/minecraft-bedrock-server/commit/e3e73ebee2d26a37d7914979258d402c542017ff) (thanks @extremeheat)
 * [Update index.d.ts](https://github.com/extremeheat/minecraft-bedrock-server/commit/6788b79f91285da6d37bfd19217dc7cf9c19f1db) (thanks @extremeheat)
