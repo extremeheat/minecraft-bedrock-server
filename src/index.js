@@ -83,7 +83,7 @@ async function download (os, version, root, path) {
 
   let found = false
 
-  for (let i = 0; i < 8; i++) { // Check for the latest server build for version (major.minor.patch.BUILD)
+  for (let i = 0; i < 20; i++) { // Check for the latest server build for version (major.minor.patch.BUILD)
     const u = url(os, `${verStr}.${String(i).padStart(2, '0')}`)
     debug('Opening', u, Date.now())
     let ret
