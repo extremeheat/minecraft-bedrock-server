@@ -223,6 +223,7 @@ function startServerAndWait (version, withTimeout, options) {
 
 // Start the server and wait for it to be ready, with a timeout, and retry once
 async function startServerAndWait2 (version, withTimeout, options) {
+  const currentDir = process.cwd()
   try {
     return await startServerAndWait(version, withTimeout, options)
   } catch (e) {
@@ -230,6 +231,7 @@ async function startServerAndWait2 (version, withTimeout, options) {
     console.log('^ Trying once more to start server in 10 seconds...')
     lastHandle?.kill()
     await new Promise(resolve => setTimeout(resolve, 10000))
+    process.chdir(currentDir) // We can't call eraseServer being inside the server directory
     await eraseServer(version, options)
     return await startServerAndWait(version, withTimeout, options)
   }
