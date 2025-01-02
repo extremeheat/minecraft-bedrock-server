@@ -1,3 +1,6 @@
+## 1.4.4
+* [Fix startServerAndWait2 server erasing logic](https://github.com/extremeheat/minecraft-bedrock-server/commit/a57b73249603b1ee15c0d9dd3b2a05ae79c444dd) (thanks @extremeheat)
+
 ## 1.4.3
 * [Update download finder](https://github.com/extremeheat/minecraft-bedrock-server/commit/6c5f28b8b3f8436802d5cea70aaf181d379aff50) (thanks @extremeheat)
 
