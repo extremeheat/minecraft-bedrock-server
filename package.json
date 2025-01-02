@@ -1,6 +1,6 @@
 {
   "name": "minecraft-bedrock-server",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "minecraft bedrock server wrapper",
   "main": "src/index.js",
   "scripts": {
