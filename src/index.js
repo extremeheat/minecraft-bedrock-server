@@ -106,6 +106,7 @@ async function download (os, version, root, path) {
 }
 
 function eraseServer (version, options) {
+  downloadLock = false
   // Remove the server and try again
   const currentDir = process.cwd()
   process.chdir(options.root || '.')
@@ -157,9 +158,13 @@ async function downloadServer (version, options) {
   const platform = options.platform || process.platform
   const serverOs = platFix[platform] || 'linux'
   const currentDir = process.cwd()
-  const ret = await download(serverOs, version, options.root || '.', options.path)
-  process.chdir(currentDir)
-  return ret
+  try {
+    const ret = await download(serverOs, version, options.root || '.', options.path)
+    return ret
+  } finally {
+    process.chdir(currentDir)
+    downloadLock = false
+  }
 }
 
 let lastHandle
@@ -176,7 +181,12 @@ async function startServer (version, onStart, options = {}) {
   const path = options.path
   const pathRoot = options.root || '.'
 
-  const ver = await download(os, version, pathRoot, path) // and enter the directory
+  let ver
+  try {
+    ver = await download(os, version, pathRoot, path) // and enter the directory
+  } finally {
+    downloadLock = false
+  }
   debug('Configuring server', ver.version)
   configure(options)
   debug('Starting server', ver.version)
