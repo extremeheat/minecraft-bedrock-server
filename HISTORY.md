@@ -1,3 +1,6 @@
+## 1.4.5
+* [Correctly release downloadLock](https://github.com/extremeheat/minecraft-bedrock-server/commit/cd93d16aec56fa38b3dd18caebcfcd07f30ad7e1) (thanks @extremeheat)
+
 ## 1.4.4
 * [Fix startServerAndWait2 server erasing logic](https://github.com/extremeheat/minecraft-bedrock-server/commit/a57b73249603b1ee15c0d9dd3b2a05ae79c444dd) (thanks @extremeheat)
 
