@@ -4,7 +4,7 @@ const bedrockServer = require('minecraft-bedrock-server')
 const fs = require('fs')
 const assert = require('assert')
 const { join } = require('path')
-const versions = ['1.16.210', '1.18.0']
+const versions = ['1.16.210', '1.18.0', '1.21.80']
 
 for (const version of versions) {
   describe(`${version}`, function () {
