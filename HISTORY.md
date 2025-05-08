@@ -1,3 +1,6 @@
+## 1.5.0
+* [Handle non-zero prefixed versions (#19)](https://github.com/extremeheat/minecraft-bedrock-server/commit/1cd430fb90e76e62449064c3012ab38891b39fa3) (thanks @extremeheat)
+
 ## 1.4.5
 * [Correctly release downloadLock](https://github.com/extremeheat/minecraft-bedrock-server/commit/cd93d16aec56fa38b3dd18caebcfcd07f30ad7e1) (thanks @extremeheat)
 
