@@ -83,8 +83,13 @@ async function download (os, version, root, path) {
 
   let found = false
 
-  for (let i = 0; i < 20; i++) { // Check for the latest server build for version (major.minor.patch.BUILD)
-    const u = url(os, `${verStr}.${String(i).padStart(2, '0')}`)
+  // Find the latest server build for version (major.minor.patch.BUILD)
+  const toTry = []
+  for (let i = 0; i < 10; i++) toTry.push(String(i))
+  for (let i = 0; i < 20; i++) toTry.push(String(i).padStart(2, '0'))
+
+  for (const build of toTry) {
+    const u = url(os, `${verStr}.${build}`)
     debug('Opening', u, Date.now())
     let ret
     try { ret = await head(u) } catch (e) { continue }
