@@ -5,7 +5,7 @@ const debug = process.env.CI ? console.debug : require('debug')('minecraft-bedro
 const https = require('https')
 const helpers = require('./helper')
 
-const serversHtmlURL = 'https://www.minecraft.net/en-us/download/server/bedrock'
+const serversJsonURL = 'https://net-secondary.web.minecraft-services.net/api/v1.0/download/links'
 
 function head (url) {
   return new Promise((resolve, reject) => {
@@ -31,26 +31,26 @@ function get (url, outPath) {
 }
 
 async function getLatestVersions () {
-  const html = await fetch(serversHtmlURL).then(res => res.text())
-  // Find '                                        <a href="https://minecraft.azureedge.net/bin-linux/bedrock-server-1.20.72.01.zip" aria-label="Download Minecraft Dedicated Server software for Ubuntu (Linux)" class="btn btn-disabled-outline mt-4 downloadlink" role="button" data-platform="serverBedrockLinux" tabindex="0" aria-disabled="true">Download </a>'
-  const links = [...html.matchAll(/a href="(.*?)" /g)].map(match => match[1])
+  const json = await fetch(serversJsonURL).then(res => res.json())
+  const links = json.result.links
 
   function forOS (os) {
-    const url = links.find(link => link.includes(os + '/'))
-    if (!url) return null
+    const entry = links.find(link => link.downloadType === os)
+    if (!entry) return null
+    const url = entry.downloadUrl
     const version4 = url.match(/bedrock-server-(\d+\.\d+\.\d+\.\d+)\.zip/)[1]
     const version3 = version4.split('.').slice(0, 3).join('.')
     return { version4, version3, url }
   }
 
   return {
-    linux: forOS('linux'),
-    windows: forOS('win'),
-    macos: forOS('osx'),
+    linux: forOS('serverBedrockLinux'),
+    windows: forOS('serverBedrockWindows'),
+    macos: forOS('serverBedrockMacOS'),
     preview: {
-      linux: forOS('linux-preview'),
-      windows: forOS('win-preview'),
-      macos: forOS('osx-preview')
+      linux: forOS('serverBedrockPreviewLinux'),
+      windows: forOS('serverBedrockPreviewWindows'),
+      macos: forOS('serverBedrockPreviewMacOS')
     }
   }
 }
