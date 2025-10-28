@@ -1,3 +1,6 @@
+## 1.5.1
+* [Update latest version fetching logic (#21)](https://github.com/extremeheat/minecraft-bedrock-server/commit/67749949f91aab62b162183169af2b8b47ec41c2) (thanks @extremeheat)
+
 ## 1.5.0
 * [Handle non-zero prefixed versions (#19)](https://github.com/extremeheat/minecraft-bedrock-server/commit/1cd430fb90e76e62449064c3012ab38891b39fa3) (thanks @extremeheat)
 
