@@ -1,3 +1,6 @@
+## 1.5.2
+* [Improve version string validation logic, support non 1. prefixed versions (#23)](https://github.com/extremeheat/minecraft-bedrock-server/commit/b771c70e50afb75b56e9912bda93d4316a4e2fff) (thanks @extremeheat)
+
 ## 1.5.1
 * [Update latest version fetching logic (#21)](https://github.com/extremeheat/minecraft-bedrock-server/commit/67749949f91aab62b162183169af2b8b47ec41c2) (thanks @extremeheat)
 
