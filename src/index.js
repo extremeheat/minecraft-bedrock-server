@@ -64,8 +64,13 @@ async function download (os, version, root, path) {
   }
   downloadLock = true
   process.chdir(root)
-  if (version.split('.').length < 3) {
-    throw new Error('minecraft-bedrock-server: A version string should contain at least 3 dots on Minecraft Bedrock Edition. Please add a .0 suffix: ' + version)
+  const vp = version.split('.')
+  if (vp.length < 3) {
+    if (version.startsWith('1')) {
+      throw new Error('minecraft-bedrock-server: A version string should contain at least 3 dots on Minecraft Bedrock Edition. Please add a .0 suffix: ' + version)
+    } else if (vp.length === 2) {
+      version = '1.' + version
+    }
   }
   const verStr = version.split('.').slice(0, 3).join('.')
   const dir = path || 'bds-' + version
