@@ -146,7 +146,6 @@ function configure (options = {}) {
     config += `\n${o}=${opts[o]}`
   }
   fs.writeFileSync('./server.properties', config)
-  console.log('wrote config', config)
   if (process.platform === 'linux') {
     cp.execSync('chmod +777 ./bedrock_server')
   }
