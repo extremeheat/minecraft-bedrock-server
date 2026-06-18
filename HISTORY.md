@@ -1,3 +1,6 @@
+## 1.5.3
+* [Disable allow-list on server config](https://github.com/extremeheat/minecraft-bedrock-server/commit/35928228cf9f266ff71c2d2362cf8659b358bbe1) (thanks @extremeheat)
+
 ## 1.5.2
 * [Improve version string validation logic, support non 1. prefixed versions (#23)](https://github.com/extremeheat/minecraft-bedrock-server/commit/b771c70e50afb75b56e9912bda93d4316a4e2fff) (thanks @extremeheat)
 
