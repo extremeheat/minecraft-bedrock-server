@@ -129,7 +129,8 @@ function eraseServer (version, options) {
 const defaultOptions = {
   'level-generator': '2',
   'server-port': '19130',
-  'online-mode': 'false'
+  'online-mode': 'false',
+  'allow-list': 'false'
 }
 const internalOptions = ['path', 'root']
 
