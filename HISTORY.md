@@ -1,3 +1,6 @@
+## 1.6.0
+* [Remove process.chdir usage so concurrent server boots are safe (#26)](https://github.com/extremeheat/minecraft-bedrock-server/commit/c39c17347a5427542ec148c83e993b894c39e426) (thanks @u9g)
+
 ## 1.5.3
 * [Disable allow-list on server config](https://github.com/extremeheat/minecraft-bedrock-server/commit/35928228cf9f266ff71c2d2362cf8659b358bbe1) (thanks @extremeheat)
 
