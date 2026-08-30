@@ -1,6 +1,7 @@
 const http = require('https')
 const fs = require('fs')
 const cp = require('child_process')
+const { join, resolve } = require('path')
 const debug = process.env.CI ? console.debug : require('debug')('minecraft-bedrock-server')
 const https = require('https')
 const helpers = require('./helper')
@@ -55,15 +56,10 @@ async function getLatestVersions () {
   }
 }
 
-let downloadLock = false
+const activeDownloads = new Map()
 
-// Download + extract vanilla server and enter the directory
-async function download (os, version, root, path) {
-  if (downloadLock) {
-    throw Error('Already downloading server')
-  }
-  downloadLock = true
-  process.chdir(root)
+// Download + extract vanilla server into the server directory, without touching the process cwd
+function download (os, version, root, path) {
   const vp = version.split('.')
   if (vp.length < 3) {
     if (version.startsWith('1')) {
@@ -73,17 +69,23 @@ async function download (os, version, root, path) {
     }
   }
   const verStr = version.split('.').slice(0, 3).join('.')
-  const dir = path || 'bds-' + version
+  const dir = resolve(root, path || 'bds-' + version)
 
+  // De-duplicate concurrent downloads into the same directory
+  if (activeDownloads.has(dir)) return activeDownloads.get(dir)
+  const promise = downloadInto(os, version, verStr, dir)
+    .finally(() => activeDownloads.delete(dir))
+  activeDownloads.set(dir, promise)
+  return promise
+}
+
+async function downloadInto (os, version, verStr, dir) {
   if (fs.existsSync(dir) && fs.readdirSync(dir).length > 1) {
-    process.chdir(dir) // Enter server folder
     debug('Already downloaded', version)
-    downloadLock = false
-    return { version: verStr, path: process.cwd() }
+    return { version: verStr, path: dir }
   }
-  try { fs.mkdirSync(dir) } catch { }
+  fs.mkdirSync(dir, { recursive: true })
 
-  process.chdir(dir) // Enter server folder
   const url = (os, version) => `https://www.minecraft.net/bedrockdedicatedserver/bin-${os}/bedrock-server-${version}.zip`
 
   let found = false
@@ -106,24 +108,19 @@ async function download (os, version, root, path) {
   }
   if (!found) throw Error('did not find server bin for ' + os + ' ' + version)
   console.info('🔻 Downloading', found)
-  await get(found, 'bds.zip')
+  await get(found, join(dir, 'bds.zip'))
   console.info('⚡ Unzipping')
   // Unzip server
-  if (process.platform === 'linux') cp.execSync('unzip -u bds.zip')
-  else cp.execSync('tar -xf bds.zip')
-  downloadLock = false
-  return { version: verStr, path: process.cwd() }
+  if (process.platform === 'linux') cp.execSync('unzip -u bds.zip', { cwd: dir })
+  else cp.execSync('tar -xf bds.zip', { cwd: dir })
+  return { version: verStr, path: dir }
 }
 
 function eraseServer (version, options) {
-  downloadLock = false
   // Remove the server and try again
-  const currentDir = process.cwd()
-  process.chdir(options.root || '.')
-  const path = options.path ? options.path : 'bds-' + version
+  const path = resolve(options.root || '.', options.path || 'bds-' + version)
   debug('Removing server', path)
   fs.rmSync(path, { recursive: true, force: true })
-  process.chdir(currentDir)
 }
 
 const defaultOptions = {
@@ -135,9 +132,9 @@ const defaultOptions = {
 const internalOptions = ['path', 'root']
 
 // Setup the server
-function configure (options = {}) {
+function configure (dir, options = {}) {
   const opts = { ...defaultOptions, ...options }
-  let config = fs.readFileSync('./server.properties', 'utf-8')
+  let config = fs.readFileSync(join(dir, 'server.properties'), 'utf-8')
   config = config.split('## node options')[0].trim()
   config += '\n## node options'
   config += '\nplayer-idle-timeout=1\nallow-cheats=true\ndefault-player-permission-level=operator'
@@ -145,15 +142,15 @@ function configure (options = {}) {
     if (internalOptions.includes(o)) continue
     config += `\n${o}=${opts[o]}`
   }
-  fs.writeFileSync('./server.properties', config)
+  fs.writeFileSync(join(dir, 'server.properties'), config)
   if (process.platform === 'linux') {
-    cp.execSync('chmod +777 ./bedrock_server')
+    cp.execSync('chmod +777 ./bedrock_server', { cwd: dir })
   }
 }
 
-function run (inheritStdout = true) {
+function run (dir, inheritStdout = true) {
   const exe = process.platform === 'win32' ? 'bedrock_server.exe' : './bedrock_server'
-  return cp.spawn(exe, inheritStdout ? { stdio: 'inherit' } : {})
+  return cp.spawn(exe, inheritStdout ? { stdio: 'inherit', cwd: dir } : { cwd: dir })
 }
 
 async function downloadServer (version, options) {
@@ -168,14 +165,7 @@ async function downloadServer (version, options) {
   }
   const platform = options.platform || process.platform
   const serverOs = platFix[platform] || 'linux'
-  const currentDir = process.cwd()
-  try {
-    const ret = await download(serverOs, version, options.root || '.', options.path)
-    return ret
-  } finally {
-    process.chdir(currentDir)
-    downloadLock = false
-  }
+  return download(serverOs, version, options.root || '.', options.path)
 }
 
 let lastHandle
@@ -187,21 +177,11 @@ async function startServer (version, onStart, options = {}) {
     throw Error('unsupported os ' + os)
   }
 
-  const currentDir = process.cwd()
-  // Take the options.path and determine if it's an absolute path or not
-  const path = options.path
-  const pathRoot = options.root || '.'
-
-  let ver
-  try {
-    ver = await download(os, version, pathRoot, path) // and enter the directory
-  } finally {
-    downloadLock = false
-  }
+  const ver = await download(os, version, options.root || '.', options.path)
   debug('Configuring server', ver.version)
-  configure(options)
+  configure(ver.path, options)
   debug('Starting server', ver.version)
-  const handle = lastHandle = run(!onStart)
+  const handle = lastHandle = run(ver.path, !onStart)
   handle.on('error', (...a) => {
     console.warn('*** THE MINECRAFT PROCESS CRASHED ***', a)
     handle.kill('SIGKILL')
@@ -219,7 +199,6 @@ async function startServer (version, onStart, options = {}) {
     handle.stdout.pipe(process.stdout)
     handle.stderr.pipe(process.stdout)
   }
-  process.chdir(currentDir)
   return handle
 }
 
@@ -244,7 +223,6 @@ function startServerAndWait (version, withTimeout, options) {
 
 // Start the server and wait for it to be ready, with a timeout, and retry once
 async function startServerAndWait2 (version, withTimeout, options) {
-  const currentDir = process.cwd()
   try {
     return await startServerAndWait(version, withTimeout, options)
   } catch (e) {
@@ -252,8 +230,7 @@ async function startServerAndWait2 (version, withTimeout, options) {
     console.log('^ Trying once more to start server in 10 seconds...')
     lastHandle?.kill()
     await new Promise(resolve => setTimeout(resolve, 10000))
-    process.chdir(currentDir) // We can't call eraseServer being inside the server directory
-    await eraseServer(version, options)
+    eraseServer(version, options)
     return await startServerAndWait(version, withTimeout, options)
   }
 }
