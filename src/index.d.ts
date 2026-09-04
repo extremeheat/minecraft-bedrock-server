@@ -85,7 +85,7 @@ declare module "minecraft-bedrock-server" {
   }
 
   // Starts a server, queries its RakNet PONG details, and stops it.
-  function getPongDetails(version: string, options?: ServerOptionsEx & { timeout?: number }): Promise<PongDetails>
+  function getPongDetails(version: string, options?: ServerOptionsEx & { timeout?: number, pingTimeout?: number }): Promise<PongDetails>
 
   interface BedrockVanillaServer {
     path: string

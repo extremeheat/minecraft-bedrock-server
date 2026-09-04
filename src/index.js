@@ -307,11 +307,11 @@ function requestPong (port, timeout = 5000) {
 }
 
 async function getPongDetails (version, options = {}) {
-  const { timeout = 5000, ...serverOptions } = options
+  const { timeout = 1000 * 60 * 5, pingTimeout = 5000, ...serverOptions } = options
   const port = Number(options['server-port'] || 19132)
   const handle = await startServerAndWait(version, timeout, serverOptions)
   try {
-    return await requestPong(port, timeout)
+    return await requestPong(port, pingTimeout)
   } finally {
     handle.kill()
   }
