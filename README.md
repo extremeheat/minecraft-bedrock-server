@@ -25,6 +25,18 @@ Or with npm to use programmatically:
 
 `npx minecraft-bedrock-server --version 1.18.0 --online --path ./my1.18server`
 
+To query a version's Bedrock protocol metadata, start a temporary server and print
+its RakNet PONG response as JSON:
+
+```sh
+npx minecraft-bedrock-server -v 1.19.1 --dump-pong-details
+```
+
+This includes the raw PONG payload and any fields available from the response,
+including `protocolVersion`, `versionName`, MOTDs, player counts, game mode,
+and IPv4/IPv6 ports. Incomplete or non-standard PONG responses are returned
+with the fields that could be extracted.
+
 any extraneous -- options will be placed inside the `server.properties` file, e.g. `--level-name coolWorld`.
 
 ### via code
@@ -38,6 +50,44 @@ const onStart = () => console.log('Server started!')
 
 bedrockServer.startServer('1.18.0', onStart, { 'server-port': 19132, 'online-mode': true, path: './bds' })
 ```
+
+#### Get PONG details
+
+`getPongDetails` downloads and starts the requested server version, sends a
+RakNet unconnected ping, and stops the server after receiving its response:
+
+```js
+const details = await bedrockServer.getPongDetails('1.19.1', {
+  path: './bds-1.19.1',
+  'server-port': 19132,
+  'server-portv6': 19133
+})
+
+console.log(details.protocolVersion, details.versionName)
+```
+
+The returned object has the following fields:
+
+```js
+{
+  rawPong: 'MCPE;Dedicated Server;527;1.19.1;0;10;...',
+  edition: 'MCPE',
+  motd: 'Dedicated Server',
+  protocolVersion: 527,
+  versionName: '1.19.1',
+  playerCount: 0,
+  maxPlayerCount: 10,
+  serverUniqueId: '...',
+  motd2: 'Bedrock level',
+  gameMode: 'Survival',
+  gameModeNumeric: 1,
+  portIPv4: 19132,
+  portIPv6: 19133
+}
+```
+
+For malformed or incomplete responses, `rawPong` and any successfully parsed
+fields are still returned; unavailable fields are `undefined`.
 
 #### Get latest server data
 From minecraft.net downloads
