@@ -1,6 +1,8 @@
 const http = require('https')
 const fs = require('fs')
 const cp = require('child_process')
+const dgram = require('dgram')
+const crypto = require('crypto')
 const { join, resolve } = require('path')
 const debug = process.env.CI ? console.debug : require('debug')('minecraft-bedrock-server')
 const https = require('https')
@@ -235,6 +237,86 @@ async function startServerAndWait2 (version, withTimeout, options) {
   }
 }
 
+const raknetMagic = Buffer.from('00ffff00fefefefefdfdfdfd12345678', 'hex')
+
+function parsePongDetails (buffer) {
+  if (buffer.length < 35) throw new Error('Invalid RakNet PONG packet')
+  if (buffer[0] !== 0x1c) throw new Error('Invalid RakNet PONG packet')
+  const stringLength = buffer.readUInt16BE(33)
+  if (buffer.length < 35 + stringLength) throw new Error('Invalid RakNet PONG packet')
+  const rawPong = buffer.subarray(35, 35 + stringLength).toString()
+  const [
+    edition,
+    motd,
+    protocolVersion,
+    versionName,
+    playerCount,
+    maxPlayerCount,
+    serverUniqueId,
+    motd2,
+    gameMode,
+    gameModeNumeric,
+    portIPv4,
+    portIPv6
+  ] = rawPong.split(';')
+  return {
+    rawPong,
+    edition,
+    motd,
+    protocolVersion: Number(protocolVersion),
+    versionName,
+    playerCount: Number(playerCount),
+    maxPlayerCount: Number(maxPlayerCount),
+    serverUniqueId,
+    motd2,
+    gameMode,
+    gameModeNumeric: Number(gameModeNumeric),
+    portIPv4: Number(portIPv4),
+    portIPv6: Number(portIPv6)
+  }
+}
+
+function requestPong (port, timeout = 5000) {
+  return new Promise((resolve, reject) => {
+    const socket = dgram.createSocket('udp4')
+    const ping = Buffer.alloc(33)
+    ping[0] = 0x01
+    ping.writeBigInt64BE(BigInt(Date.now()), 1)
+    raknetMagic.copy(ping, 9)
+    crypto.randomBytes(8).copy(ping, 25)
+    const timer = setTimeout(() => {
+      socket.close()
+      reject(new Error('Timed out waiting for RakNet PONG'))
+    }, timeout)
+    socket.on('message', (message) => {
+      clearTimeout(timer)
+      socket.close()
+      try {
+        resolve(parsePongDetails(message))
+      } catch (e) {
+        reject(e)
+      }
+    })
+    socket.on('error', (error) => {
+      clearTimeout(timer)
+      socket.close()
+      reject(error)
+    })
+    socket.send(ping, port, '127.0.0.1')
+  })
+}
+
+async function getPongDetails (version, options = {}) {
+  const { timeout = 5000, ...serverOptions } = options
+  const port = Number(options['server-port'] || 19132)
+  const handle = await startServerAndWait(version, timeout, serverOptions)
+  try {
+    return await requestPong(port, timeout)
+  } finally {
+    handle.kill()
+  }
+}
+
 class BedrockVanillaServer {
   constructor (path, version, options) {
     this.path = path || '.'
@@ -271,4 +353,4 @@ async function prepare (version, options) {
   return new BedrockVanillaServer(dl.path, dl.version, options || {})
 }
 
-module.exports = { getLatestVersions, downloadServer, startServer, startServerAndWait, startServerAndWait2, prepare }
+module.exports = { getLatestVersions, downloadServer, startServer, startServerAndWait, startServerAndWait2, getPongDetails, parsePongDetails, prepare }

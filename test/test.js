@@ -35,6 +35,29 @@ describe('helpers work', function () {
 })
 
 describe('auxiliary methods', function () {
+  it('parses RakNet PONG details', function () {
+    const details = 'MCPE;Dedicated Server;527;1.19.1;0;10;13253860892328930865;Bedrock level;Survival;1;19132;19133;'
+    const packet = Buffer.alloc(35 + Buffer.byteLength(details))
+    packet[0] = 0x1c
+    packet.writeUInt16BE(Buffer.byteLength(details), 33)
+    packet.write(details, 35)
+    assert.deepStrictEqual(bedrockServer.parsePongDetails(packet), {
+      rawPong: details,
+      edition: 'MCPE',
+      motd: 'Dedicated Server',
+      protocolVersion: 527,
+      versionName: '1.19.1',
+      playerCount: 0,
+      maxPlayerCount: 10,
+      serverUniqueId: '13253860892328930865',
+      motd2: 'Bedrock level',
+      gameMode: 'Survival',
+      gameModeNumeric: 1,
+      portIPv4: 19132,
+      portIPv6: 19133
+    })
+  })
+
   it('getLatestVersions works', async function () {
     const versions = await bedrockServer.getLatestVersions()
     console.log('Versions', versions)

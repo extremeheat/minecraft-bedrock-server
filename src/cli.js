@@ -14,6 +14,7 @@ const opt = require('basic-args')({
     path: { type: String, description: 'Custom path to the server directory', default: null },
 
     versions: { type: Boolean, description: 'Passing --versions will list all versions' },
+    'dump-pong-details': { type: Boolean, description: 'Start a server and print its RakNet PONG details as JSON' },
     download: { type: String, description: `Download (but not run) the server binary for this platfrom (default: ${process.platform})`, default: null }
   },
   examples: [
@@ -42,6 +43,13 @@ async function main () {
     }
     if (opt.download) {
       await lib.downloadServer(version, { platform: opt.download, ...opt })
+    } else if (opt['dump-pong-details']) {
+      console.log(JSON.stringify(await lib.getPongDetails(version, {
+        'server-port': opt.port,
+        'server-portv6': opt.port6,
+        'online-mode': Boolean(opt.online),
+        path: opt.path ? opt.path : undefined
+      })))
     } else {
       const customOptions = opt._ || {}
       await lib.startServer(version, /* onStart callback */ null, {

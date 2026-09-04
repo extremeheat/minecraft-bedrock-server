@@ -76,6 +76,7 @@ Options:
   --port6       Port to listen on for IPv6  (default: 19133)
   --online      Whether to run in online mode  
   --path        Custom path to the server directory  
+  --dump-pong-details  Start a server and print its RakNet PONG details as JSON
   --versions    Passing --versions will list all versions  
   --download    Download (but not run) the server binary for this platfrom (default: linux)  
 Usage:
