@@ -58,6 +58,37 @@ describe('auxiliary methods', function () {
     })
   })
 
+  it('keeps available fields from a malformed PONG', function () {
+    const details = 'MCPE;Partial Server;594'
+    const packet = Buffer.alloc(35 + Buffer.byteLength(details))
+    packet[0] = 0x1c
+    packet.writeUInt16BE(1000, 33)
+    packet.write(details, 35)
+    const parsed = bedrockServer.parsePongDetails(packet)
+    assert.strictEqual(parsed.rawPong, details)
+    assert.strictEqual(parsed.edition, 'MCPE')
+    assert.strictEqual(parsed.motd, 'Partial Server')
+    assert.strictEqual(parsed.protocolVersion, 594)
+    assert.strictEqual(parsed.versionName, undefined)
+    assert.strictEqual(parsed.playerCount, undefined)
+  })
+
+  it('extracts PONG details from a real server', async function () {
+    this.timeout(90000)
+    const path = join(__dirname, 'bds-1.21.80')
+    const executable = process.platform === 'win32' ? 'bedrock_server.exe' : 'bedrock_server'
+    if (!fs.existsSync(join(path, executable))) this.skip()
+    const port = 19132 + ((Math.random() * 1000) | 0)
+    const details = await bedrockServer.getPongDetails('1.21.80', {
+      path,
+      'server-port': port,
+      'server-portv6': port + 1
+    })
+    assert(details.rawPong)
+    assert(details.protocolVersion > 0)
+    assert.strictEqual(details.portIPv4, port)
+  })
+
   it('getLatestVersions works', async function () {
     const versions = await bedrockServer.getLatestVersions()
     console.log('Versions', versions)

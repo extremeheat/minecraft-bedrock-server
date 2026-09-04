@@ -240,11 +240,8 @@ async function startServerAndWait2 (version, withTimeout, options) {
 const raknetMagic = Buffer.from('00ffff00fefefefefdfdfdfd12345678', 'hex')
 
 function parsePongDetails (buffer) {
-  if (buffer.length < 35) throw new Error('Invalid RakNet PONG packet')
-  if (buffer[0] !== 0x1c) throw new Error('Invalid RakNet PONG packet')
-  const stringLength = buffer.readUInt16BE(33)
-  if (buffer.length < 35 + stringLength) throw new Error('Invalid RakNet PONG packet')
-  const rawPong = buffer.subarray(35, 35 + stringLength).toString()
+  const stringLength = buffer.length >= 35 ? buffer.readUInt16BE(33) : 0
+  const rawPong = buffer.subarray(35, Math.min(buffer.length, 35 + stringLength)).toString()
   const [
     edition,
     motd,
@@ -259,20 +256,21 @@ function parsePongDetails (buffer) {
     portIPv4,
     portIPv6
   ] = rawPong.split(';')
+  const number = value => value && Number.isFinite(Number(value)) ? Number(value) : undefined
   return {
     rawPong,
     edition,
     motd,
-    protocolVersion: Number(protocolVersion),
+    protocolVersion: number(protocolVersion),
     versionName,
-    playerCount: Number(playerCount),
-    maxPlayerCount: Number(maxPlayerCount),
+    playerCount: number(playerCount),
+    maxPlayerCount: number(maxPlayerCount),
     serverUniqueId,
     motd2,
     gameMode,
-    gameModeNumeric: Number(gameModeNumeric),
-    portIPv4: Number(portIPv4),
-    portIPv6: Number(portIPv6)
+    gameModeNumeric: number(gameModeNumeric),
+    portIPv4: number(portIPv4),
+    portIPv6: number(portIPv6)
   }
 }
 
@@ -291,11 +289,7 @@ function requestPong (port, timeout = 5000) {
     socket.on('message', (message) => {
       clearTimeout(timer)
       socket.close()
-      try {
-        resolve(parsePongDetails(message))
-      } catch (e) {
-        reject(e)
-      }
+      resolve(parsePongDetails(message))
     })
     socket.on('error', (error) => {
       clearTimeout(timer)
