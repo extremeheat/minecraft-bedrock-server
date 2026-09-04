@@ -282,14 +282,21 @@ function requestPong (port, timeout = 5000) {
     ping.writeBigInt64BE(BigInt(Date.now()), 1)
     raknetMagic.copy(ping, 9)
     crypto.randomBytes(8).copy(ping, 25)
+    let bestPong
     const timer = setTimeout(() => {
       socket.close()
-      reject(new Error('Timed out waiting for RakNet PONG'))
+      if (bestPong) resolve(bestPong)
+      else reject(new Error('Timed out waiting for RakNet PONG'))
     }, timeout)
     socket.on('message', (message) => {
-      clearTimeout(timer)
-      socket.close()
-      resolve(parsePongDetails(message))
+      const pong = parsePongDetails(message)
+      if (pong.rawPong) {
+        clearTimeout(timer)
+        socket.close()
+        resolve(pong)
+      } else {
+        bestPong = pong
+      }
     })
     socket.on('error', (error) => {
       clearTimeout(timer)
