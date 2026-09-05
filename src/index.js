@@ -284,7 +284,12 @@ function requestPong (port, timeout = 5000) {
     raknetMagic.copy(ping, 9)
     crypto.randomBytes(8).copy(ping, 25)
     let bestPong
+    const sendPing = () => {
+      for (const targetPort of ports) socket.send(ping, targetPort, '127.0.0.1')
+    }
+    const interval = setInterval(sendPing, 250)
     const timer = setTimeout(() => {
+      clearInterval(interval)
       socket.close()
       if (bestPong) resolve(bestPong)
       else reject(new Error('Timed out waiting for RakNet PONG'))
@@ -293,6 +298,7 @@ function requestPong (port, timeout = 5000) {
       const pong = parsePongDetails(message)
       if (pong.rawPong) {
         clearTimeout(timer)
+        clearInterval(interval)
         socket.close()
         resolve(pong)
       } else {
@@ -301,10 +307,11 @@ function requestPong (port, timeout = 5000) {
     })
     socket.on('error', (error) => {
       clearTimeout(timer)
+      clearInterval(interval)
       socket.close()
       reject(error)
     })
-    for (const targetPort of ports) socket.send(ping, targetPort, '127.0.0.1')
+    sendPing()
   })
 }
 
