@@ -1,3 +1,6 @@
+## 1.7.1
+* [Update getPongDetails to use default server port](https://github.com/extremeheat/minecraft-bedrock-server/commit/2560828efd29852116ce653ff6d982f467f7d6c1) (thanks @extremeheat)
+
 ## 1.7.0
 * [Add API and CLI flag for extracting Bedrock PONG details (#29)](https://github.com/extremeheat/minecraft-bedrock-server/commit/205baa4a884fc9874035a9fdbac7077d3cab123e) (thanks @Copilot)
 
