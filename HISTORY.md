@@ -1,3 +1,6 @@
+## 1.7.0
+* [Add API and CLI flag for extracting Bedrock PONG details (#29)](https://github.com/extremeheat/minecraft-bedrock-server/commit/205baa4a884fc9874035a9fdbac7077d3cab123e) (thanks @Copilot)
+
 ## 1.6.0
 * [Remove process.chdir usage so concurrent server boots are safe (#26)](https://github.com/extremeheat/minecraft-bedrock-server/commit/c39c17347a5427542ec148c83e993b894c39e426) (thanks @u9g)
 
