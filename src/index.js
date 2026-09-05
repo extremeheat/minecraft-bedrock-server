@@ -277,6 +277,7 @@ function parsePongDetails (buffer) {
 function requestPong (port, timeout = 5000) {
   return new Promise((resolve, reject) => {
     const socket = dgram.createSocket('udp4')
+    const ports = Array.isArray(port) ? port : [port]
     const ping = Buffer.alloc(33)
     ping[0] = 0x01
     ping.writeBigInt64BE(BigInt(Date.now()), 1)
@@ -303,7 +304,7 @@ function requestPong (port, timeout = 5000) {
       socket.close()
       reject(error)
     })
-    socket.send(ping, port, '127.0.0.1')
+    for (const targetPort of ports) socket.send(ping, targetPort, '127.0.0.1')
   })
 }
 
@@ -312,7 +313,7 @@ async function getPongDetails (version, options = {}) {
   const port = Number(options['server-port'] || 19132)
   const handle = await startServerAndWait(version, timeout, serverOptions)
   try {
-    return await requestPong(port, pingTimeout)
+    return await requestPong([...new Set([port, 19132])], pingTimeout)
   } finally {
     handle.kill()
   }
