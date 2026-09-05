@@ -315,9 +315,10 @@ function requestPong (port, timeout = 5000) {
   })
 }
 
-async function getPongDetails (version, options = {}) {
+async function getPongDetails (version, options = { 'server-port': 19130 }) {
   const { timeout = 1000 * 60 * 5, pingTimeout = 5000, ...serverOptions } = options
-  const port = Number(options['server-port'] || 19132)
+  const port = Number(options['server-port'])
+  if (!port) throw new Error('Server port is required')
   const handle = await startServerAndWait(version, timeout, serverOptions)
   try {
     return await requestPong([...new Set([port, 19132])], pingTimeout)
