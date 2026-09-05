@@ -1,6 +1,8 @@
 const http = require('https')
 const fs = require('fs')
 const cp = require('child_process')
+const dgram = require('dgram')
+const crypto = require('crypto')
 const { join, resolve } = require('path')
 const debug = process.env.CI ? console.debug : require('debug')('minecraft-bedrock-server')
 const https = require('https')
@@ -235,6 +237,95 @@ async function startServerAndWait2 (version, withTimeout, options) {
   }
 }
 
+const raknetMagic = Buffer.from('00ffff00fefefefefdfdfdfd12345678', 'hex')
+
+function parsePongDetails (buffer) {
+  const stringLength = buffer.length >= 35 ? buffer.readUInt16BE(33) : 0
+  const rawPong = buffer.subarray(35, Math.min(buffer.length, 35 + stringLength)).toString()
+  const [
+    edition,
+    motd,
+    protocolVersion,
+    versionName,
+    playerCount,
+    maxPlayerCount,
+    serverUniqueId,
+    motd2,
+    gameMode,
+    gameModeNumeric,
+    portIPv4,
+    portIPv6
+  ] = rawPong.split(';')
+  const number = value => value && Number.isFinite(Number(value)) ? Number(value) : undefined
+  return {
+    rawPong,
+    edition,
+    motd,
+    protocolVersion: number(protocolVersion),
+    versionName,
+    playerCount: number(playerCount),
+    maxPlayerCount: number(maxPlayerCount),
+    serverUniqueId,
+    motd2,
+    gameMode,
+    gameModeNumeric: number(gameModeNumeric),
+    portIPv4: number(portIPv4),
+    portIPv6: number(portIPv6)
+  }
+}
+
+function requestPong (port, timeout = 5000) {
+  return new Promise((resolve, reject) => {
+    const socket = dgram.createSocket('udp4')
+    const ports = Array.isArray(port) ? port : [port]
+    const ping = Buffer.alloc(33)
+    ping[0] = 0x01
+    ping.writeBigInt64BE(BigInt(Date.now()), 1)
+    raknetMagic.copy(ping, 9)
+    crypto.randomBytes(8).copy(ping, 25)
+    let bestPong
+    const sendPing = () => {
+      for (const targetPort of ports) socket.send(ping, targetPort, '127.0.0.1')
+    }
+    const interval = setInterval(sendPing, 250)
+    const timer = setTimeout(() => {
+      clearInterval(interval)
+      socket.close()
+      if (bestPong) resolve(bestPong)
+      else reject(new Error('Timed out waiting for RakNet PONG'))
+    }, timeout)
+    socket.on('message', (message) => {
+      const pong = parsePongDetails(message)
+      if (pong.rawPong) {
+        clearTimeout(timer)
+        clearInterval(interval)
+        socket.close()
+        resolve(pong)
+      } else {
+        bestPong = pong
+      }
+    })
+    socket.on('error', (error) => {
+      clearTimeout(timer)
+      clearInterval(interval)
+      socket.close()
+      reject(error)
+    })
+    sendPing()
+  })
+}
+
+async function getPongDetails (version, options = {}) {
+  const { timeout = 1000 * 60 * 5, pingTimeout = 5000, ...serverOptions } = options
+  const port = Number(options['server-port'] || 19132)
+  const handle = await startServerAndWait(version, timeout, serverOptions)
+  try {
+    return await requestPong([...new Set([port, 19132])], pingTimeout)
+  } finally {
+    handle.kill()
+  }
+}
+
 class BedrockVanillaServer {
   constructor (path, version, options) {
     this.path = path || '.'
@@ -271,4 +362,4 @@ async function prepare (version, options) {
   return new BedrockVanillaServer(dl.path, dl.version, options || {})
 }
 
-module.exports = { getLatestVersions, downloadServer, startServer, startServerAndWait, startServerAndWait2, prepare }
+module.exports = { getLatestVersions, downloadServer, startServer, startServerAndWait, startServerAndWait2, getPongDetails, parsePongDetails, prepare }

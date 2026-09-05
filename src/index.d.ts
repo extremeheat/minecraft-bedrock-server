@@ -68,6 +68,25 @@ declare module "minecraft-bedrock-server" {
   // Starts the server and waits. On failure, reset state and try again once more.
   function startServerAndWait2(version: string, withTimeout: number, options: ServerOptionsEx): Promise<ChildProcess>
 
+  type PongDetails = {
+    rawPong: string,
+    edition: string,
+    motd: string,
+    protocolVersion: number,
+    versionName: string,
+    playerCount: number,
+    maxPlayerCount: number,
+    serverUniqueId: string,
+    motd2: string,
+    gameMode: string,
+    gameModeNumeric: number,
+    portIPv4: number,
+    portIPv6: number
+  }
+
+  // Starts a server, queries its RakNet PONG details, and stops it.
+  function getPongDetails(version: string, options?: ServerOptionsEx & { timeout?: number, pingTimeout?: number }): Promise<PongDetails>
+
   interface BedrockVanillaServer {
     path: string
     version: string
