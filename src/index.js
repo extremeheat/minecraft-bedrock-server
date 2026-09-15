@@ -316,12 +316,22 @@ function requestPong (port, timeout = 5000) {
 }
 
 async function getPongDetails (version, options = { 'server-port': 19130 }) {
-  const { timeout = 1000 * 60 * 5, pingTimeout = 5000, ...serverOptions } = options
+  const { timeout = 1000 * 60 * 5, pingTimeout = 5000, pongRetries = 15, ...serverOptions } = options
   const port = Number(options['server-port'])
   if (!port) throw new Error('Server port is required')
+  if (!Number.isInteger(pongRetries) || pongRetries < 1) throw new Error('pongRetries must be a positive integer')
   const handle = await startServerAndWait(version, timeout, serverOptions)
   try {
-    return await requestPong([...new Set([port, 19132])], pingTimeout)
+    const ports = [...new Set([port, 19132])]
+    let lastError
+    for (let attempt = 0; attempt < pongRetries; attempt++) {
+      try {
+        return await requestPong(ports, pingTimeout)
+      } catch (error) {
+        lastError = error
+      }
+    }
+    throw new Error(`${lastError.message} (ports: ${ports.join(', ')}, attempts: ${pongRetries})`)
   } finally {
     handle.kill()
   }

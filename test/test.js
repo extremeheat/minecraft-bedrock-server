@@ -73,6 +73,13 @@ describe('auxiliary methods', function () {
     assert.strictEqual(parsed.playerCount, undefined)
   })
 
+  it('rejects an invalid PONG retry count', async function () {
+    await assert.rejects(
+      bedrockServer.getPongDetails('1.21.80', { 'server-port': 19132, pongRetries: 0 }),
+      /pongRetries must be a positive integer/
+    )
+  })
+
   it('extracts PONG details from a real server', async function () {
     this.timeout(90000)
     const path = join(__dirname, 'bds-1.21.80')
