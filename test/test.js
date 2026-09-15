@@ -94,6 +94,7 @@ describe('auxiliary methods', function () {
     assert(details.rawPong)
     assert(details.protocolVersion > 0)
     assert.strictEqual(details.portIPv4, port)
+    assert.strictEqual(details.portIPv6, port + 1)
   })
 
   it('getLatestVersions works', async function () {
