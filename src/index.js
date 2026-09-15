@@ -314,6 +314,7 @@ function requestPong (port, timeout = 5000) {
           }
         })
         socket.on('error', () => {
+          socket.close()
           sockets.delete(target.type)
           if (!sockets.size) {
             close()
