@@ -327,17 +327,16 @@ function requestPong (port, timeout = 5000) {
   })
 }
 
-async function getPongDetails (version, options = { 'server-port': 19130 }) {
+async function getPongDetails (version, options = { 'server-port': 19130, 'server-portv6': 19133 }) {
   const { timeout = 1000 * 60 * 5, pingTimeout = 5000, pongRetries = 15, ...serverOptions } = options
   const port = Number(options['server-port'])
   if (!port) throw new Error('Server port is required')
   if (!Number.isInteger(pongRetries) || pongRetries < 1) throw new Error('pongRetries must be a positive integer')
   const handle = await startServerAndWait(version, timeout, serverOptions)
   try {
-    const ports = [
-      { port, host: '127.0.0.1', type: 'udp4' },
-      { port: Number(options['server-portv6']) || 19133, host: '::1', type: 'udp6' }
-    ]
+    const ports = [{ port, host: '127.0.0.1', type: 'udp4' }]
+    const port6 = Number(options['server-portv6'])
+    if (port6) ports.push({ port: port6, host: '::1', type: 'udp6' })
     let lastError
     for (let attempt = 0; attempt < pongRetries; attempt++) {
       try {
@@ -346,7 +345,8 @@ async function getPongDetails (version, options = { 'server-port': 19130 }) {
         lastError = error
       }
     }
-    throw new Error(`${lastError.message} (ports: IPv4 ${ports[0].port}, IPv6 ${ports[1].port}, attempts: ${pongRetries})`)
+    const portInfo = ports.map(target => `${target.type === 'udp4' ? 'IPv4' : 'IPv6'} ${target.port}`).join(', ')
+    throw new Error(`${lastError.message} (ports: ${portInfo}, attempts: ${pongRetries})`)
   } finally {
     handle.kill()
   }
