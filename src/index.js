@@ -276,52 +276,78 @@ function parsePongDetails (buffer) {
 
 function requestPong (port, timeout = 5000) {
   return new Promise((resolve, reject) => {
-    const socket = dgram.createSocket('udp4')
-    const ports = Array.isArray(port) ? port : [port]
+    const targets = Array.isArray(port) ? port : [{ port, host: '127.0.0.1', type: 'udp4' }]
+    const sockets = new Map()
     const ping = Buffer.alloc(33)
     ping[0] = 0x01
     ping.writeBigInt64BE(BigInt(Date.now()), 1)
     raknetMagic.copy(ping, 9)
     crypto.randomBytes(8).copy(ping, 25)
     let bestPong
+    let closed = false
+    const close = () => {
+      if (closed) return
+      closed = true
+      clearTimeout(timer)
+      clearInterval(interval)
+      for (const socket of sockets.values()) socket.close()
+    }
     const sendPing = () => {
-      for (const targetPort of ports) socket.send(ping, targetPort, '127.0.0.1')
+      for (const target of targets) sockets.get(target.type)?.send(ping, target.port, target.host)
     }
     const interval = setInterval(sendPing, 250)
     const timer = setTimeout(() => {
-      clearInterval(interval)
-      socket.close()
+      close()
       if (bestPong) resolve(bestPong)
       else reject(new Error('Timed out waiting for RakNet PONG'))
     }, timeout)
-    socket.on('message', (message) => {
-      const pong = parsePongDetails(message)
-      if (pong.rawPong) {
-        clearTimeout(timer)
-        clearInterval(interval)
-        socket.close()
-        resolve(pong)
-      } else {
-        bestPong = pong
+    for (const target of targets) {
+      if (!sockets.has(target.type)) {
+        const socket = dgram.createSocket(target.type)
+        socket.on('message', (message) => {
+          const pong = parsePongDetails(message)
+          if (pong.rawPong) {
+            close()
+            resolve(pong)
+          } else {
+            bestPong = pong
+          }
+        })
+        socket.on('error', () => {
+          socket.close()
+          sockets.delete(target.type)
+          if (!sockets.size) {
+            close()
+            reject(new Error('Unable to send RakNet PONG request'))
+          }
+        })
+        sockets.set(target.type, socket)
       }
-    })
-    socket.on('error', (error) => {
-      clearTimeout(timer)
-      clearInterval(interval)
-      socket.close()
-      reject(error)
-    })
+    }
     sendPing()
   })
 }
 
-async function getPongDetails (version, options = { 'server-port': 19130 }) {
-  const { timeout = 1000 * 60 * 5, pingTimeout = 5000, ...serverOptions } = options
+async function getPongDetails (version, options = { 'server-port': 19130, 'server-portv6': 19133 }) {
+  const { timeout = 1000 * 60 * 5, pingTimeout = 5000, pongRetries = 15, ...serverOptions } = options
   const port = Number(options['server-port'])
   if (!port) throw new Error('Server port is required')
+  if (!Number.isInteger(pongRetries) || pongRetries < 1) throw new Error('pongRetries must be a positive integer')
   const handle = await startServerAndWait(version, timeout, serverOptions)
   try {
-    return await requestPong([...new Set([port, 19132])], pingTimeout)
+    const ports = [{ port, host: '127.0.0.1', type: 'udp4' }]
+    const port6 = Number(options['server-portv6'])
+    if (port6) ports.push({ port: port6, host: '::1', type: 'udp6' })
+    let lastError
+    for (let attempt = 0; attempt < pongRetries; attempt++) {
+      try {
+        return await requestPong(ports, pingTimeout)
+      } catch (error) {
+        lastError = error
+      }
+    }
+    const portInfo = ports.map(target => `${target.type === 'udp4' ? 'IPv4' : 'IPv6'} ${target.port}`).join(', ')
+    throw new Error(`${lastError.message} (ports: ${portInfo}, attempts: ${pongRetries})`)
   } finally {
     handle.kill()
   }
