@@ -1,3 +1,6 @@
+## 1.7.2
+* [Retry RakNet PONG info requests (#33)](https://github.com/extremeheat/minecraft-bedrock-server/commit/6971883e98d07949cdd9789b5d43e44640fe860f) (thanks @Copilot)
+
 ## 1.7.1
 * [Update getPongDetails to use default server port](https://github.com/extremeheat/minecraft-bedrock-server/commit/2560828efd29852116ce653ff6d982f467f7d6c1) (thanks @extremeheat)
 
