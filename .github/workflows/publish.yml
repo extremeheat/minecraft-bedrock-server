@@ -3,6 +3,11 @@ on:
   push:
     branches:
       - master # Change this to your default branch
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
   npm-publish:
     name: npm-publish
