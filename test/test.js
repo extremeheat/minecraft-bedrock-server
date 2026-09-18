@@ -82,14 +82,17 @@ describe('auxiliary methods', function () {
 
   it('extracts PONG details from a real server', async function () {
     this.timeout(90000)
-    const path = join(__dirname, 'bds-1.21.80')
-    const executable = process.platform === 'win32' ? 'bedrock_server.exe' : 'bedrock_server'
-    if (!fs.existsSync(join(path, executable))) this.skip()
+    const latest = await bedrockServer.getLatestVersions()
+    const platform = process.platform === 'win32' ? 'windows' : 'linux'
+    const version = latest[platform].version3
+    const path = join(__dirname, 'bds-' + version)
     const port = 19132 + ((Math.random() * 1000) | 0)
-    const details = await bedrockServer.getPongDetails('1.21.80', {
+    const details = await bedrockServer.getPongDetails(version, {
       path,
       'server-port': port,
-      'server-portv6': port + 1
+      'server-portv6': port + 1,
+      pingTimeout: 5000,
+      pongRetries: 2
     })
     assert(details.rawPong)
     assert(details.protocolVersion > 0)
