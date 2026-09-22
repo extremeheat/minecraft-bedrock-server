@@ -26,16 +26,25 @@ Or with npm to use programmatically:
 `npx minecraft-bedrock-server --version 1.18.0 --online --path ./my1.18server`
 
 To query a version's Bedrock protocol metadata, start a temporary server and print
-its RakNet PONG response as JSON:
+its RakNet or Nethernet advertisement as JSON:
 
 ```sh
 npx minecraft-bedrock-server -v 1.19.1 --dump-pong-details
 ```
 
-This includes the raw PONG payload and any fields available from the response,
-including `protocolVersion`, `versionName`, MOTDs, player counts, game mode,
-and IPv4/IPv6 ports. Incomplete or non-standard PONG responses are returned
-with the fields that could be extracted.
+The result includes `transport` (`raknet` or `nethernet`) and available metadata:
+`protocolVersion`, `versionName`, MOTDs, player counts, and game mode. RakNet
+also advertises IPv4/IPv6 ports. `rawPong` contains the RakNet text or the
+Nethernet hexadecimal advertisement; Nethernet also reports `advertisementVersion`.
+Fields absent from the advertisement are omitted, including game/protocol versions
+on older Nethernet v4 advertisements. Discovery and advertisement parsing are provided by `bedrock-protocol`; the advertised game version need not be supported for connections.
+
+Nethernet discovery uses local UDP port 7551 and requires
+`enable-lan-visibility=true` (the server default). Run one discoverable local
+server at a time when using this helper. The configured `server-port` is the
+Nethernet HTTP signalling port, not the discovery port; `server-portv6` is ignored
+by Nethernet BDS. Empty advertisements are retried and eventually produce an error.
+Older servers continue to use RakNet discovery on their configured ports.
 
 any extraneous -- options will be placed inside the `server.properties` file, e.g. `--level-name coolWorld`.
 
@@ -91,7 +100,7 @@ npx minecraft-bedrock-server -v 1.19.1 --dump-pong-details
 **via code**
 
 The underlying API `getPongDetails` downloads and starts the requested server version, sends a
-RakNet unconnected ping, and stops the server after receiving its response:
+discovery request using the transport in its generated `server.properties`, and stops the server after receiving its response:
 
 ```js
 const details = await bedrockServer.getPongDetails('1.19.1', {
@@ -105,6 +114,7 @@ The above log or return data in this structure:
 
 ```js
 {
+  transport: 'raknet',
   rawPong: 'MCPE;Dedicated Server;527;1.19.1;0;10;...',
   edition: 'MCPE',
   motd: 'Dedicated Server',
@@ -135,7 +145,7 @@ Options:
   --port6       Port to listen on for IPv6  (default: 19133)
   --online      Whether to run in online mode  
   --path        Custom path to the server directory  
-  --dump-pong-details  Start a server and print its RakNet PONG details as JSON
+  --dump-pong-details  Start a server and print its RakNet or Nethernet advertisement as JSON
   --versions    Passing --versions will list all versions  
   --download    Download (but not run) the server binary for this platfrom (default: linux)  
 Usage:
@@ -147,6 +157,8 @@ Usage:
 ## API
 
 See the exported [TypeScript defs for method docs](src/index.d.ts).
+
+Requires Node.js 24 or newer, matching `bedrock-protocol`.
 
 ## Testing
 `npm test`

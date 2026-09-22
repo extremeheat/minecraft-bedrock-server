@@ -14,7 +14,7 @@ const opt = require('basic-args')({
     path: { type: String, description: 'Custom path to the server directory', default: null },
 
     versions: { type: Boolean, description: 'Passing --versions will list all versions' },
-    'dump-pong-details': { type: Boolean, description: 'Start a server and print its RakNet PONG details as JSON' },
+    'dump-pong-details': { type: Boolean, description: 'Start a server and print its RakNet or Nethernet advertisement as JSON' },
     download: { type: String, description: `Download (but not run) the server binary for this platfrom (default: ${process.platform})`, default: null }
   },
   examples: [
@@ -48,7 +48,8 @@ async function main () {
         'server-port': opt.port,
         'server-portv6': opt.port6,
         'online-mode': Boolean(opt.online),
-        path: opt.path ? opt.path : undefined
+        path: opt.path ? opt.path : undefined,
+        ...opt._
       })))
     } else {
       const customOptions = opt._ || {}
