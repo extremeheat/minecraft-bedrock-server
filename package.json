@@ -31,7 +31,7 @@
     "basic-args": "^1.4.0",
     "debug": "^4.3.3",
     "prismarine-nbt": "^2.5.0",
-    "bedrock-protocol": "PrismarineJS/bedrock-protocol#9f1774b2bee0be281ec858d51b4439a0dabb73c1"
+    "bedrock-protocol": "PrismarineJS/bedrock-protocol#3d1841e79ccd8c37afdda8b55e2cba8b8640d574"
   },
   "devDependencies": {
     "minecraft-bedrock-server": "file:.",
