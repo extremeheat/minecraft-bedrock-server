@@ -22,6 +22,8 @@ declare module "minecraft-bedrock-server" {
   type PermissionLevel = "visitor" | "member" | "operator";
 
   type ServerOptions = {
+    "transport"?: "raknet" | "nethernet"; // Defaults to the server binary's configured transport
+    "enable-lan-visibility"?: boolean; // Required for Nethernet discovery
     "server-name"?: string; // Used as the server name
     "gamemode"?: GameMode; // Sets the game mode for new players
     "force-gamemode"?: boolean; // Prevents the server from sending to the client gamemode values other than the gamemode value saved by the server during world creation
@@ -69,22 +71,26 @@ declare module "minecraft-bedrock-server" {
   function startServerAndWait2(version: string, withTimeout: number, options: ServerOptionsEx): Promise<ChildProcess>
 
   type PongDetails = {
-    rawPong: string,
-    edition: string,
-    motd: string,
-    protocolVersion: number,
-    versionName: string,
-    playerCount: number,
-    maxPlayerCount: number,
-    serverUniqueId: string,
-    motd2: string,
-    gameMode: string,
-    gameModeNumeric: number,
-    portIPv4: number,
-    portIPv6: number
+    transport: "raknet" | "nethernet",
+    rawPong: string, // RakNet text or Nethernet hexadecimal advertisement
+    advertisementVersion?: number,
+    edition?: string,
+    motd?: string,
+    protocolVersion?: number,
+    versionName?: string,
+    playerCount?: number,
+    maxPlayerCount?: number,
+    serverUniqueId?: string,
+    motd2?: string,
+    gameMode?: string,
+    gameModeNumeric?: number,
+    portIPv4?: number,
+    portIPv6?: number
   }
 
-  // Starts a server, queries its RakNet PONG details, and stops it.
+  function parsePongDetails(buffer: Buffer): PongDetails
+
+  // Starts a server, queries its RakNet or Nethernet advertisement, and stops it.
   function getPongDetails(version: string, options?: ServerOptionsEx & { timeout?: number, pingTimeout?: number, pongRetries?: number }): Promise<PongDetails>
 
   interface BedrockVanillaServer {

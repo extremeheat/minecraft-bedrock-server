@@ -7,6 +7,7 @@ const { join, resolve } = require('path')
 const debug = process.env.CI ? console.debug : require('debug')('minecraft-bedrock-server')
 const https = require('https')
 const helpers = require('./helper')
+const { createNethernetPing, parseNethernetPong } = require('./nethernet')
 
 const serversJsonURL = 'https://net-secondary.web.minecraft-services.net/api/v1.0/download/links'
 
@@ -258,6 +259,7 @@ function parsePongDetails (buffer) {
   ] = rawPong.split(';')
   const number = value => value && Number.isFinite(Number(value)) ? Number(value) : undefined
   return {
+    transport: 'raknet',
     rawPong,
     edition,
     motd,
@@ -274,16 +276,17 @@ function parsePongDetails (buffer) {
   }
 }
 
-function requestPong (port, timeout = 5000) {
+function requestPong (port, timeout = 5000, transport = 'raknet') {
   return new Promise((resolve, reject) => {
     const targets = Array.isArray(port) ? port : [{ port, host: '127.0.0.1', type: 'udp4' }]
     const sockets = new Map()
-    const ping = Buffer.alloc(33)
-    ping[0] = 0x01
-    ping.writeBigInt64BE(BigInt(Date.now()), 1)
-    raknetMagic.copy(ping, 9)
-    crypto.randomBytes(8).copy(ping, 25)
-    let bestPong
+    const ping = transport === 'nethernet' ? createNethernetPing() : Buffer.alloc(33)
+    if (transport === 'raknet') {
+      ping[0] = 0x01
+      ping.writeBigInt64BE(BigInt(Date.now()), 1)
+      raknetMagic.copy(ping, 9)
+      crypto.randomBytes(8).copy(ping, 25)
+    }
     let closed = false
     const close = () => {
       if (closed) return
@@ -298,19 +301,20 @@ function requestPong (port, timeout = 5000) {
     const interval = setInterval(sendPing, 250)
     const timer = setTimeout(() => {
       close()
-      if (bestPong) resolve(bestPong)
-      else reject(new Error('Timed out waiting for RakNet PONG'))
+      reject(new Error(`Timed out waiting for a non-empty ${transport} advertisement`))
     }, timeout)
     for (const target of targets) {
       if (!sockets.has(target.type)) {
         const socket = dgram.createSocket(target.type)
         socket.on('message', (message) => {
-          const pong = parsePongDetails(message)
-          if (pong.rawPong) {
+          try {
+            if (transport === 'raknet' && (message.length < 35 || message[0] !== 0x1c || !message.subarray(17, 33).equals(raknetMagic))) return
+            const pong = transport === 'nethernet' ? parseNethernetPong(message) : parsePongDetails(message)
+            if (!pong.rawPong) return
             close()
             resolve(pong)
-          } else {
-            bestPong = pong
+          } catch (error) {
+            debug('Ignoring unreadable discovery response', error.message)
           }
         })
         socket.on('error', () => {
@@ -318,7 +322,7 @@ function requestPong (port, timeout = 5000) {
           sockets.delete(target.type)
           if (!sockets.size) {
             close()
-            reject(new Error('Unable to send RakNet PONG request'))
+            reject(new Error(`Unable to send ${transport} discovery request`))
           }
         })
         sockets.set(target.type, socket)
@@ -335,13 +339,17 @@ async function getPongDetails (version, options = { 'server-port': 19130, 'serve
   if (!Number.isInteger(pongRetries) || pongRetries < 1) throw new Error('pongRetries must be a positive integer')
   const handle = await startServerAndWait(version, timeout, serverOptions)
   try {
-    const ports = [{ port, host: '127.0.0.1', type: 'udp4' }]
+    const directory = resolve(serverOptions.root || '.', serverOptions.path || 'bds-' + version)
+    const properties = fs.readFileSync(join(directory, 'server.properties'), 'utf8')
+    const transport = [...properties.matchAll(/^transport\s*=\s*(\w+)/gm)].at(-1)?.[1] || 'raknet'
+    if (!['raknet', 'nethernet'].includes(transport)) throw new Error(`Unsupported server transport: ${transport}`)
+    const ports = [{ port: transport === 'nethernet' ? 7551 : port, host: '127.0.0.1', type: 'udp4' }]
     const port6 = Number(options['server-portv6'])
-    if (port6) ports.push({ port: port6, host: '::1', type: 'udp6' })
+    if (port6 && transport === 'raknet') ports.push({ port: port6, host: '::1', type: 'udp6' })
     let lastError
     for (let attempt = 0; attempt < pongRetries; attempt++) {
       try {
-        return await requestPong(ports, pingTimeout)
+        return await requestPong(ports, pingTimeout, transport)
       } catch (error) {
         lastError = error
       }

@@ -4,7 +4,7 @@ const bedrockServer = require('minecraft-bedrock-server')
 const fs = require('fs')
 const assert = require('assert')
 const { join } = require('path')
-const versions = ['1.16.210', '1.18.0', '1.21.80']
+const versions = ['1.16.210', '1.18.0', '1.21.80', '1.26.51']
 
 for (const version of versions) {
   describe(`${version}`, function () {
@@ -42,6 +42,7 @@ describe('auxiliary methods', function () {
     packet.writeUInt16BE(Buffer.byteLength(details), 33)
     packet.write(details, 35)
     assert.deepStrictEqual(bedrockServer.parsePongDetails(packet), {
+      transport: 'raknet',
       rawPong: details,
       edition: 'MCPE',
       motd: 'Dedicated Server',
@@ -80,22 +81,28 @@ describe('auxiliary methods', function () {
     )
   })
 
-  it('extracts PONG details from a real server', async function () {
-    this.timeout(90000)
-    const path = join(__dirname, 'bds-1.21.80')
-    const executable = process.platform === 'win32' ? 'bedrock_server.exe' : 'bedrock_server'
-    if (!fs.existsSync(join(path, executable))) this.skip()
-    const port = 19132 + ((Math.random() * 1000) | 0)
-    const details = await bedrockServer.getPongDetails('1.21.80', {
-      path,
-      'server-port': port,
-      'server-portv6': port + 1
+  for (const [version, transport] of [['1.21.80', 'raknet'], ['1.26.51', 'nethernet']]) {
+    it(`extracts ${transport} metadata from a real ${version} server`, async function () {
+      this.timeout(90000)
+      const path = join(__dirname, 'bds-' + version)
+      const executable = process.platform === 'win32' ? 'bedrock_server.exe' : 'bedrock_server'
+      if (!fs.existsSync(join(path, executable))) this.skip()
+      const port = 19132 + ((Math.random() * 1000) | 0)
+      const details = await bedrockServer.getPongDetails(version, {
+        path,
+        'server-port': port,
+        'server-portv6': port + 1
+      })
+      assert.strictEqual(details.transport, transport)
+      assert(details.rawPong)
+      assert(details.protocolVersion > 0)
+      assert.strictEqual(details.versionName.split('.').slice(0, 3).join('.'), version)
+      if (transport === 'raknet') {
+        assert.strictEqual(details.portIPv4, port)
+        assert.strictEqual(details.portIPv6, port + 1)
+      }
     })
-    assert(details.rawPong)
-    assert(details.protocolVersion > 0)
-    assert.strictEqual(details.portIPv4, port)
-    assert.strictEqual(details.portIPv6, port + 1)
-  })
+  }
 
   it('getLatestVersions works', async function () {
     const versions = await bedrockServer.getLatestVersions()

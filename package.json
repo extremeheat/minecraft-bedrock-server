@@ -30,7 +30,8 @@
   "dependencies": {
     "basic-args": "^1.4.0",
     "debug": "^4.3.3",
-    "prismarine-nbt": "^2.5.0"
+    "prismarine-nbt": "^2.5.0",
+    "protodef": "^1.19.0"
   },
   "devDependencies": {
     "minecraft-bedrock-server": "file:.",
