@@ -30,11 +30,15 @@
   "dependencies": {
     "basic-args": "^1.4.0",
     "debug": "^4.3.3",
-    "prismarine-nbt": "^2.5.0"
+    "prismarine-nbt": "^2.5.0",
+    "bedrock-protocol": "^3.60.0"
   },
   "devDependencies": {
     "minecraft-bedrock-server": "file:.",
     "mocha": "^10.4.0",
     "standard": "^17.1.0"
+  },
+  "engines": {
+    "node": ">=24"
   }
 }
