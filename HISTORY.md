@@ -1,3 +1,9 @@
+## 1.8.0
+* [Use bedrock-protocol for RakNet and Nethernet discovery (#37)](https://github.com/extremeheat/minecraft-bedrock-server/commit/4cacabe5e19ecde02d01801d71067d7d5315d5a5) (thanks @extremeheat)
+* [Update Node.js version and modify publish workflow](https://github.com/extremeheat/minecraft-bedrock-server/commit/45ce8d709d12a4652ca9afdd1a12eff56fd11dac) (thanks @extremeheat)
+* [Update npm-publish action to version 4](https://github.com/extremeheat/minecraft-bedrock-server/commit/5aec60cd2adbf43b0bd02e1f87121b9177a6af22) (thanks @extremeheat)
+* [Update publish.yml to include permissions](https://github.com/extremeheat/minecraft-bedrock-server/commit/b46cd91494c861358264ef288a8737765018c625) (thanks @extremeheat)
+
 ## 1.7.2
 * [Retry RakNet PONG info requests (#33)](https://github.com/extremeheat/minecraft-bedrock-server/commit/6971883e98d07949cdd9789b5d43e44640fe860f) (thanks @Copilot)
 
