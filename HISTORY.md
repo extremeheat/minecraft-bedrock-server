@@ -1,3 +1,6 @@
+## 1.8.0
+* [Use bedrock-protocol for RakNet and Nethernet discovery (#37)](https://github.com/extremeheat/minecraft-bedrock-server/commit/4cacabe5e19ecde02d01801d71067d7d5315d5a5) (thanks @extremeheat)
+
 ## 1.7.2
 * [Retry RakNet PONG info requests (#33)](https://github.com/extremeheat/minecraft-bedrock-server/commit/6971883e98d07949cdd9789b5d43e44640fe860f) (thanks @Copilot)
 
